@@ -43,6 +43,18 @@ def _learner_params(ens: StackedEnsemble) -> dict:
     return out
 
 
+def _portable(metrics: dict) -> dict:
+    """Copy of the metrics that is safe to embed in the artifact and to commit.
+
+    Tracking details contain absolute local paths (the MLflow store location), which would leak the machine's folder
+    layout and user name into a file that is shared. Run id, experiment and model version are kept; the paths are not.
+    """
+    m = json.loads(json.dumps(metrics))
+    for key in ("tracking_uri", "model_uri"):
+        m.get("tracking", {}).pop(key, None)
+    return m
+
+
 def train(raw_path=C.RAW_CSV, fast: bool = False) -> dict:
     C.ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
     C.REPORT_DIR.mkdir(parents=True, exist_ok=True)
@@ -133,14 +145,15 @@ def train(raw_path=C.RAW_CSV, fast: bool = False) -> dict:
         results_test=results, results_val=val_results, artifacts=artifacts,
         sample_X=X[va].head(5), gate_passed=gate.passed,
     )
-    C.METRICS_PATH.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    portable = _portable(metrics)
+    C.METRICS_PATH.write_text(json.dumps(portable, indent=2), encoding="utf-8")
 
     # ------------------------------------------------------------------ 5. ship only if the gate passed
     if not gate.passed:
         raise QualityGateError("Quality gate FAILED; no model artifact was written and nothing was registered.\n" + gate.summary())
 
     joblib.dump({
-        "ensemble": ens, "feature_columns": list(X.columns), "metrics": metrics,
+        "ensemble": ens, "feature_columns": list(X.columns), "metrics": portable,
         "environment": {"python": platform.python_version(), "sklearn": sklearn.__version__,
                         "xgboost": xgboost.__version__, "pandas": pd.__version__},
     }, C.MODEL_PATH)

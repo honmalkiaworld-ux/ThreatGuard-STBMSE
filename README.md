@@ -63,6 +63,17 @@ a Python environment is thousands of small files. For serving only, `requirement
 
 Linux/macOS: the same commands work; use `python3` and `export PYTHONPATH=src` if you prefer not to pass `--app-dir`.
 
+**The trained model is in the repository** (`artifacts/model.joblib`), so after installing `requirements-api.txt` you can
+start the API immediately without training. About that file:
+
+- It was trained on Windows with the pinned versions in `requirements-api.txt`, and it is the model behind every number in
+  the report. Loading it needs those same versions (scikit-learn 1.8.0, XGBoost 3.4.1); other versions may fail or differ.
+- `.joblib` files are Python pickles, which can run code when loaded. Only load a copy you trust, such as this repo's.
+  `train.py` strips absolute local paths from the file before writing it.
+- The Docker image and CI **train their own model**, and on Linux it differs slightly (see the reproducibility notes),
+  so the container does not serve this exact file. `python run_pipeline.py` regenerates it and overwrites the committed copy.
+- Each retrain that is committed adds another 12 MB to the git history, so commit it deliberately, not by habit.
+
 Then open http://127.0.0.1:8000/docs, or:
 
 ```powershell
@@ -176,7 +187,7 @@ src/stbmse/
 .github/workflows/ci.yml   CI/CD
 latex/                     report.tex, slides.tex (Beamer), make_figures.py -> reports/ST-BMSE_Report.pdf and ST-BMSE_Slides.pdf
 tests/                     27 tests (leakage, splits, validation, gate, MLflow, Evidently, API)
-artifacts/                 model.joblib, metrics.json   (generated)
+artifacts/                 model.joblib (11.8 MB), metrics.json: the serialized model, committed on purpose
 reports/                   REPORT.md + generated CSV/JSON/HTML results
 data/raw/                  input CSV
 Dockerfile, docker-compose.yml, AI_USE.md

@@ -2,10 +2,15 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
-artifacts/*.joblib
 data/processed/
 latex/build/
+
+# MLflow store: generated, grows with every run, contains absolute local paths
 mlflow.db
 mlruns/
+
+# large generated HTML (regenerate with python -m stbmse.monitor)
 reports/evidently_drift_report.html
-artifacts/
+
+# artifacts/model.joblib and artifacts/metrics.json are committed on purpose (serialized artifacts for the capstone);
+# train.py strips absolute local paths from them before writing.
