@@ -122,10 +122,11 @@ current data 27 of 32 columns drift, including the model's own predictions. Run 
 
 A failed gate stops `ci` at the training step, so nothing after it runs and nothing is published.
 
-> **Status: not yet run on GitHub.** The workflow's structure was validated and each step was reproduced locally
-> (pipeline with the gate, 27 tests, Docker build, container health and prediction calls, a 422 on bad input), but the
-> workflow file itself has not been executed on GitHub or checked with a dedicated linter such as `actionlint`.
-> Expect to fix small things on its first real run.
+> **Status: ran green on GitHub on its first push** (run 44397520310): the `ci` job (install, train with the gate,
+> audits and Evidently, 27 tests, Docker build, container call) and the `cd` job (build and push to the container
+> registry) both succeeded. Not verified: the published image was not listed independently (the available token lacks
+> the `read:packages` scope), the workflow has not been checked with a linter such as `actionlint`, and the gate's
+> blocking behaviour was proven locally (exit code 1, nothing saved) rather than on GitHub.
 
 ### Docker
 

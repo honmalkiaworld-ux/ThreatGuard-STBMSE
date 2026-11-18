@@ -335,7 +335,8 @@ left the model file untouched and left the registry holding only the passing ver
 
 \textbf{CI/CD.} \code{.github/workflows/ci.yml} runs on every push and pull request: install, train with the gate, audits and Evidently report, pytest, Docker build, then run the container and call
 \code{/health}, \code{/predict} and an invalid request, which must return HTTP 422. Publishing to the GitHub Container Registry happens only on the default branch and only if CI passed.
-\textbf{This workflow has not yet run on GitHub.} Its structure was validated and every CI step was reproduced locally, but the workflow file itself was neither executed nor checked with a dedicated linter.
+\textbf{The workflow ran green on GitHub on its first push} (run 44397520310): both the \code{ci} job and the \code{cd} job (build and push to the container registry) succeeded.
+Not verified: the published image could not be listed independently (the available token lacks the \code{read:packages} scope), the workflow file was not checked with a dedicated linter such as \code{actionlint}, and the gate's blocking behaviour was proven locally rather than on GitHub.
 
 \textbf{Container verification.} The Docker image was rebuilt from the slimmed serving requirements (no MLflow, Evidently or test tools in the image) and run exactly as the CI job does (Docker Desktop, Windows~11).
 The quality gate runs during \code{docker build}, so a failing gate would fail the build. The image is 1.3~GB; about 200~MB of that is a GPU-communication library that XGBoost's Linux wheel pulls in and this CPU-only service does not use.
@@ -349,7 +350,7 @@ platforms): ensemble PR-AUC 0.609 vs.\ 0.608, but tuned threshold 0.16 vs.\ 0.18
   \item Data origin unverified; results are a method demonstration.
   \item One train/validation/test split; no rolling-origin evaluation.
   \item Hyperparameters were fixed and not tuned.
-  \item The CI/CD workflow has not been run on GitHub, and the registry push has never been exercised.
+  \item The CI/CD workflow ran once on GitHub; the published image was not independently inspected, the file was not linted, and the gate's blocking behaviour was proven locally, not on GitHub.
   \item The quality-gate margin ($+0.05$ PR-AUC over persistence) is a judgement, not derived from a requirement.
   \item The 5:1 cost ratio is assumed.
   \item The alert threshold does not transfer across regimes; recalibrate on recent data.

@@ -22,8 +22,8 @@ Claude (Anthropic), used through Claude Code in VS Code during November 2026.
 ## What the AI did not do, or could not do
 
 - It did not obtain ACLED or KNBS data, and it did not create or log in to any account on the student's behalf.
-- It could not run the GitHub Actions workflow (it needs a GitHub repository), and a dedicated linter (`actionlint`) was blocked by the sandbox, so the workflow file has only been structurally validated. Its steps were reproduced locally instead.
-- The container registry push (the CD job) has never been exercised.
+- A dedicated linter (`actionlint`) was blocked by the sandbox, so the workflow file was only structurally validated before its first run. The workflow then ran successfully on GitHub after the repository was created and pushed (both the `ci` and `cd` jobs).
+- The published container image was not independently inspected (the available token lacks the `read:packages` scope), and the quality gate's blocking behaviour was proven locally rather than on GitHub.
 - It could not verify where `kenya_conflict_monthly.csv` came from.
 - It did not choose the research question, the proposal, the 5:1 cost ratio or the 0.05 PR-AUC gate margin. The proposal is the student's; the cost ratio and gate margin are assumptions written into `config.py` and `gate.py`.
 

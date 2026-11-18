@@ -290,7 +290,7 @@
   \end{tabular}
   \vspace{6pt}
   \begin{alertblock}{Honest status}
-    \small The workflow has \textbf{not yet run on GitHub}. Its steps were reproduced locally; the file itself was not executed or linted.
+    \small \textbf{Ran green on GitHub on its first push}, both jobs. Not verified: the published image was not listed independently, the file was not linted, and the gate's blocking was proven locally.
   \end{alertblock}
 \end{frame}
 
@@ -343,7 +343,7 @@
       \item Data origin unverified
       \item One split; no rolling-origin evaluation
       \item Hyperparameters not tuned
-      \item CI/CD not yet run on GitHub
+      \item CI/CD ran once; workflow not linted
       \item 5:1 cost ratio and 0.05 gate margin assumed
       \item No causal claim
     \end{itemize}
@@ -352,7 +352,7 @@
     \begin{itemize}\setlength{\itemsep}{3pt}\small
       \item Real ACLED and KNBS data, with an explicit escalation definition
       \item Rolling-origin validation and tuning
-      \item SHAP explanations; run CI on GitHub
+      \item SHAP explanations; lint the workflow
       \item Threshold set with practitioners
     \end{itemize}
   \end{columns}
