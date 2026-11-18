@@ -14,8 +14,9 @@ Claude (Anthropic), used through Claude Code in VS Code during November 2026.
 |---|---|
 | Analysis of the data and proposal | Profiled `kenya_conflict_monthly.csv`, compared it with the proposal's stated requirements, and flagged leakage and provenance concerns |
 | Code | Drafted and ran all Python under `src/`, `tests/` and `run_pipeline.py`, the `Dockerfile`, `docker-compose.yml`, the requirements files and the GitHub Actions workflow `.github/workflows/ci.yml`, modelled on the lab repository's `fraud_mlops` and `practicals-mlops` examples |
+| Frontend | Designed and wrote the single-page browser UI (`src/stbmse/static/index.html`), the `/ui` and `/periods` routes and their tests; checked the page in headless Edge at several widths and in dark mode |
 | MLOps additions | Wrote the validation-only quality gate, the MLflow tracking and registry module and the Evidently drift module; installed Docker Desktop, MLflow and Evidently on the student's machine (the Python packages in a separate virtual environment outside OneDrive) |
-| Verification | Ran the pipeline in a clean environment, the 27 tests, a mutation check showing the leakage test catches planted leaks, a deliberately impossible gate (exit code 1, no model written, nothing registered), the CI container steps locally, and live HTTP calls against the API |
+| Verification | Ran the pipeline in a clean environment, the 32 tests, a mutation check showing the leakage test catches planted leaks, a deliberately impossible gate (exit code 1, no model written, nothing registered), the CI container steps locally, and live HTTP calls against the API |
 | Documents | Drafted `README.md`, this file and `reports/REPORT.md` from the actual outputs |
 | Research | Searched the web for ACLED and KNBS access rules; those findings are in the chat history, not in the repo |
 

@@ -76,6 +76,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"county":"Nairobi","year":2024,"month":12}'
           echo
+          # the browser UI must be served by the same container
+          curl -fsS http://127.0.0.1:8000/ui | grep -q "County escalation outlook"
+          curl -fsS http://127.0.0.1:8000/periods
+          echo
           # invalid input must be rejected with HTTP 422
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:8000/predict \
             -H 'Content-Type: application/json' \

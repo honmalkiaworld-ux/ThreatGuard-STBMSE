@@ -26,6 +26,7 @@ Escalation Forecasting in Kenya"* (Esther Muthui, 223923).
 | Drift monitoring | **Evidently AI** report (inputs, predictions, target) plus a PSI check |
 | CI/CD | **GitHub Actions**: train + gate + tests + Docker build + container smoke test; push to GHCR only from the default branch |
 | Serving | FastAPI service, Docker image, `/predict` and `/predict/batch` |
+| Frontend | A browser page served by the API: ranked counties, threshold slider, per-county detail |
 
 ## Architecture
 
@@ -43,6 +44,7 @@ flowchart LR
   G --> H[Scorer<br/>predict.py]
   H --> I[FastAPI<br/>api.py]
   I --> J[Docker container]
+  I --> U[Browser UI<br/>/ui]
   C --> K[audits<br/>leakage, PSI, per-region]
   C --> V[Evidently<br/>drift report]
 ```
@@ -54,7 +56,7 @@ Requires Python 3.12. From the repository root:
 ```powershell
 python -m pip install -r requirements.txt     # full environment: training, MLflow, Evidently, tests
 python run_pipeline.py                        # ingest -> train -> GATE -> MLflow -> audits -> Evidently -> sample prediction (about 4 min)
-python -m pytest -q                           # 27 tests, including a leakage test, the gate, MLflow and Evidently
+python -m pytest -q                           # 32 tests: leakage, the gate, MLflow, Evidently, the API and the browser UI page
 python -m uvicorn stbmse.api:app --app-dir src --port 8000
 ```
 
@@ -155,10 +157,32 @@ The image installs only `requirements-api.txt` (no MLflow, Evidently or test too
 > and this CPU-only service does not use; a CPU-only XGBoost build would likely avoid it, but I did not try. If a build
 > fails elsewhere, check the pinned versions in `requirements-api.txt` and the `libgomp1` install that XGBoost needs.
 
+## Frontend: the analyst view
+
+Open **http://127.0.0.1:8000/** (it redirects to `/ui`) once the API is running; it also works from the Docker container.
+
+![The analyst view](latex/figures/ui_screenshot.png)
+
+- **Ranked table** of all 47 counties by predicted probability of escalating next month, with a tick on each bar marking the alert threshold.
+- **Controls:** as-of month, an alert-threshold slider (with *Reset to tuned*), alerts-only / top-10 filters and a region filter.
+- **Detail panel:** what each of the three models says, plus context an analyst can check (recent escalation history, region peers, the Markov estimate).
+- **Honest about the alert problem:** when the threshold makes nearly every county alert (as the tuned 0.18 does), the page says so and tells the analyst to raise it.
+- **Shareable links:** the state lives in the URL, e.g. `/ui#county=Nairobi&y=2023&m=6&t=0.55`; add `&theme=dark` to force dark mode.
+
+Design notes: it is a single static page the API serves, so there is nothing extra to install or deploy, and it is a real
+client of the JSON API (`/periods`, `/predict/batch`). API values are inserted as text, never as HTML; a test enforces
+that, and that the page makes no external requests. The lab repository's frontend is a separate Streamlit app calling the
+API; if your course expects Streamlit specifically, that would be a thin wrapper around the same endpoints.
+
+Checked in a real browser (headless Edge, desktop, phone width, light and dark) and served from the Docker container.
+It has **not** been tested in Firefox or Safari, or with a screen reader; rows are keyboard-focusable with Enter/Space.
+
 ## API
 
 | Method | Path | Purpose |
 |---|---|---|
+| GET | `/` , `/ui` | the browser UI |
+| GET | `/periods` | scorable months and the tuned alert threshold |
 | GET | `/health` | liveness, data range, county count |
 | GET | `/model-info` | version, split sizes, threshold, test metrics |
 | GET | `/counties` | valid county names |
@@ -183,10 +207,11 @@ src/stbmse/
   audit.py                 leakage audit, PSI drift, per-region performance
   monitor.py               Evidently drift report (optional dependency)
   predict.py               Scorer (used by CLI and API)
-  api.py                   FastAPI service
+  api.py                   FastAPI service (also serves the browser UI)
+  static/index.html        the analyst view: one self-contained page, no build step, no external requests
 .github/workflows/ci.yml   CI/CD
 latex/                     report.tex, slides.tex (Beamer), make_figures.py -> reports/ST-BMSE_Report.pdf and ST-BMSE_Slides.pdf
-tests/                     27 tests (leakage, splits, validation, gate, MLflow, Evidently, API)
+tests/                     32 tests (leakage, splits, validation, gate, MLflow, Evidently, API, UI)
 artifacts/                 model.joblib (11.8 MB), metrics.json: the serialized model, committed on purpose
 reports/                   REPORT.md + generated CSV/JSON/HTML results
 data/raw/                  input CSV

@@ -3,8 +3,10 @@
 Run:  uvicorn stbmse.api:app --app-dir src --host 0.0.0.0 --port 8000      (docs at /docs)
 """
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from . import __version__
@@ -12,6 +14,7 @@ from . import config as C
 from .predict import Scorer, ScoringError
 
 state: dict = {}
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -47,6 +50,24 @@ class BatchRequest(BaseModel):
 
 def _scorer() -> Scorer:
     return state["scorer"]
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/ui")
+
+
+@app.get("/ui", include_in_schema=False)
+def ui():
+    """The analyst view: a single static page that calls this API's JSON endpoints from the browser."""
+    return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
+
+
+@app.get("/periods")
+def periods():
+    """Months that can be scored, and the model's tuned alert threshold (used by the UI's controls)."""
+    s = _scorer()
+    return {"first": s.first_valid, "last": s.data_through, "default_threshold": s.ensemble.threshold}
 
 
 @app.get("/health")

@@ -61,6 +61,41 @@ def test_batch_is_ranked(client):
     assert len(probs) == 5 and probs == sorted(probs, reverse=True)
 
 
+def test_root_redirects_to_the_ui(client):
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/ui"
+
+
+def test_ui_page_is_served_and_calls_the_api(client):
+    r = client.get("/ui")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    page = r.text
+    assert "County escalation outlook" in page
+    for endpoint in ("/periods", "/predict/batch"):          # the page is a real client of the JSON API
+        assert endpoint in page
+
+
+def test_ui_makes_no_external_requests(client):
+    """Self-contained: no CDN scripts, fonts or trackers, so it works offline and inside the container."""
+    import re
+    page = client.get("/ui").text
+    assert not re.search(r"""(src|href)\s*=\s*["']https?://""", page)
+    assert "<script src=" not in page and "<link " not in page
+
+
+def test_ui_never_writes_api_text_as_html(client):
+    """API values must be inserted as text (textContent), never as HTML, so a hostile value cannot inject markup."""
+    page = client.get("/ui").text
+    assert "innerHTML" not in page and "insertAdjacentHTML" not in page and "document.write" not in page
+
+
+def test_periods_describe_the_scorable_range(client):
+    j = client.get("/periods").json()
+    assert j["first"] == "2015-03" and j["last"] == "2024-12" and 0 < j["default_threshold"] < 1
+    assert client.post("/predict", json={"county": "Nairobi", "year": 2015, "month": 3}).status_code == 200
+    assert client.post("/predict", json={"county": "Nairobi", "year": 2015, "month": 2}).status_code == 404
+
+
 def test_model_info(client):
     r = client.get("/model-info")
     assert r.status_code == 200 and "test_results" in r.json()

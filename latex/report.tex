@@ -326,7 +326,19 @@ the schema in \code{config.REQUIRED\_COLUMNS} or extend \code{data.py}.
 \section{Deployment and real-world relevance}
 A FastAPI service (\code{/predict}, \code{/predict/batch}, \code{/health}, \code{/model-info}) loads the serialised artifact. Features are rebuilt at
 serving time with the same code as training, so training and serving cannot diverge. The API returns the probability, the base-model probabilities and the context an
-analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (27 tests passing) and with live HTTP calls.
+analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (32 tests passing) and with live HTTP calls.
+
+\textbf{Frontend.} The API serves a single-page analyst view at \code{/ui} (Figure~\ref{fig:ui}): all 47 counties ranked by predicted probability, an as-of month selector, an alert-threshold slider,
+region and alerts-only filters, and a detail panel showing what each of the three models says plus context an analyst can check. When the threshold makes nearly every county alert (as the tuned 0.18 does)
+the page says so and advises raising it. It is a real client of the JSON endpoints, makes no external requests, inserts API values as text only, and these properties are covered by tests.
+It was checked in headless Edge at desktop and phone widths in light and dark mode, and served from the Docker container; it has not been tested in Firefox or Safari, or with a screen reader.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.97\linewidth]{figures/ui_screenshot.png}
+  \caption{The analyst view served at \code{/ui}, here with the threshold raised to 0.50 so that 8 of 47 counties alert and the ranking is informative. The tick on each bar marks the threshold.}
+  \label{fig:ui}
+\end{figure}
 
 \textbf{Experiment tracking and the quality gate.} Every training run is logged to MLflow: parameters, validation and test metrics, tables, the model, and one nested run per base learner. The gate runs on
 \emph{validation data only}. A failed gate exits with code 1, writes no model artifact and registers nothing; the failed run is still logged and tagged \code{quality\_gate=failed}. This was exercised in both directions.

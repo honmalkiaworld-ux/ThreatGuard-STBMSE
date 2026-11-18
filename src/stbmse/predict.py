@@ -40,6 +40,8 @@ class Scorer:
         self.counties = sorted(self.feat.County.unique())
         last = self.feat.sort_values("t").iloc[-1]
         self.data_through = f"{int(last.Year)}-{int(last.Month):02d}"
+        first = self.feat[self.feat["y_lag2"].notna()].sort_values("t").iloc[0]      # earliest month with 3 months of history
+        self.first_valid = f"{int(first.Year)}-{int(first.Month):02d}"
 
     def _score_rows(self, idx: list[int], threshold: float | None) -> list[dict]:
         thr = self.ensemble.threshold if threshold is None else float(threshold)
