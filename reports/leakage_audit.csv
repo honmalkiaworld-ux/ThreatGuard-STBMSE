@@ -1,0 +1,6 @@
+setting,pr_auc,roc_auc
+NOWCAST (not a forecast): this month's indicators -> this month's label,0.9745,0.9816
+FORECAST with this month's indicators only (no history),0.5602,0.6441
+"FORECAST ST-BMSE ensemble, all features",0.6077,0.6909
+FORECAST ensemble WITHOUT Sentiments,0.6081,0.691
+"FORECAST ensemble, escalation history only",0.6225,0.6925

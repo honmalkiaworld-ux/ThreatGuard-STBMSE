@@ -1,0 +1,8 @@
+# Full development / CI environment: runtime + experiment tracking + drift monitoring + tests.
+-r requirements-api.txt
+
+mlflow==3.18.0          # experiment tracking and model registry (src/stbmse/tracking.py)
+evidently==0.7.23       # data-drift report (src/stbmse/monitor.py)
+
+pytest==9.2.0
+httpx==0.28.1           # used by FastAPI's TestClient

@@ -1,0 +1,44 @@
+feature,pr_auc_drop,std
+Social_Unrest_Score_roll3,0.12223,0.01179
+cum_hist,0.0367,0.00515
+y_roll6,0.03457,0.00818
+eb_p_enter,0.02231,0.0019
+Region_North Eastern,0.0179,0.00091
+eb_p_stay,0.0113,0.00312
+y_lag2,0.00904,0.0012
+y_lag0,0.00637,0.00112
+spill_national_lag1,0.00629,0.00572
+Conflict_Type_Violence Against Civilians,0.00563,0.00165
+Social_Unrest_Score,0.00511,0.00098
+Security_Force_Response_Time_roll3,0.00491,0.00104
+Economic_Volatility_Index_lag1,0.00472,0.00058
+spill_national,0.00404,0.00482
+spill_region_lag1,0.00392,0.00057
+Region_Rift Valley,0.00336,0.00112
+Region_Northern,0.00101,0.00075
+m_sin,0.001,0.00025
+Region_Central,0.00094,0.00104
+m_cos,0.00084,0.00038
+Region_Eastern,0.00062,0.00093
+Conflict_Type_Terrorism,0.00054,1e-05
+y_lag1,0.0005,0.00058
+Sentiments_Positive,0.00043,0.00092
+tension_num,0.00041,0.00018
+Region_Nyanza,0.00038,7e-05
+Conflict_Type_Civil Unrest,0.00037,0.00037
+y_roll3,0.00026,0.00164
+Security_Force_Response_Time_lag1,0.00025,0.00035
+Historical_Conflict_Presence,0.00023,0.0
+y_roll12,0.00023,0.00851
+Sentiments_Neutral,9e-05,0.00019
+Conflict_Type_Armed Conflict,3e-05,0.00131
+Conflict_Type_Political Tension,-9e-05,0.00109
+spill_region,-0.00027,0.0004
+Social_Unrest_Score_lag1,-0.00075,0.00048
+Region_Western,-0.00153,0.00103
+Sentiments_Negative,-0.00203,0.00012
+Economic_Volatility_Index,-0.00292,0.00155
+eb_markov_next,-0.00319,0.00177
+Region_Coastal,-0.00356,0.00302
+Security_Force_Response_Time,-0.00575,0.00061
+Economic_Volatility_Index_roll3,-0.00883,0.00235

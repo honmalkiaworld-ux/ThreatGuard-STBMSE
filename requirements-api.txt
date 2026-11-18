@@ -1,0 +1,10 @@
+# Runtime dependencies: enough to train the model and serve it. This is what the Docker image installs.
+numpy==2.4.2
+pandas==2.3.3
+scipy==1.17.1
+scikit-learn==1.8.0
+xgboost==3.4.1
+joblib==1.5.3
+pydantic==2.12.5
+fastapi==0.164.0
+uvicorn[standard]==0.54.0

@@ -1,0 +1,224 @@
+{
+  "reference_period": "train",
+  "current_period": "test",
+  "n_reference_rows": 2679,
+  "n_current_rows": 1692,
+  "columns_tested": 32,
+  "columns_drifted": 27,
+  "share_drifted": 0.8438,
+  "dataset_drift_threshold_share": 0.5,
+  "dataset_drift_detected": true,
+  "prediction_drift": {
+    "column": "prediction",
+    "drifted": true,
+    "score": 1.31,
+    "method": "Wasserstein distance (normed)",
+    "threshold": 0.1
+  },
+  "target_drift": {
+    "column": "target_next",
+    "drifted": true,
+    "score": 0.17,
+    "method": "Jensen-Shannon distance",
+    "threshold": 0.1
+  },
+  "drifted_columns": [
+    {
+      "column": "spill_national",
+      "drifted": true,
+      "score": 2.65,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "spill_national_lag1",
+      "drifted": true,
+      "score": 2.61,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Social_Unrest_Score_roll3",
+      "drifted": true,
+      "score": 1.68,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "prediction",
+      "drifted": true,
+      "score": 1.31,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Social_Unrest_Score",
+      "drifted": true,
+      "score": 1.27,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Social_Unrest_Score_lag1",
+      "drifted": true,
+      "score": 1.24,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "spill_region",
+      "drifted": true,
+      "score": 1.08,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "spill_region_lag1",
+      "drifted": true,
+      "score": 1.07,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "y_roll12",
+      "drifted": true,
+      "score": 1.06,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "y_roll6",
+      "drifted": true,
+      "score": 1.0,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "eb_p_enter",
+      "drifted": true,
+      "score": 0.86,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "eb_markov_next",
+      "drifted": true,
+      "score": 0.79,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Economic_Volatility_Index_roll3",
+      "drifted": true,
+      "score": 0.68,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Economic_Volatility_Index",
+      "drifted": true,
+      "score": 0.65,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Economic_Volatility_Index_lag1",
+      "drifted": true,
+      "score": 0.64,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "eb_p_stay",
+      "drifted": true,
+      "score": 0.54,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "cum_hist",
+      "drifted": true,
+      "score": 0.47,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    },
+    {
+      "column": "Sentiments",
+      "drifted": true,
+      "score": 0.35,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "Conflict_Type",
+      "drifted": true,
+      "score": 0.32,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "Historical_Conflict_Presence",
+      "drifted": true,
+      "score": 0.27,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "y_roll3",
+      "drifted": true,
+      "score": 0.25,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "tension_num",
+      "drifted": true,
+      "score": 0.22,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "y_lag0",
+      "drifted": true,
+      "score": 0.17,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "y_lag1",
+      "drifted": true,
+      "score": 0.17,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "y_lag2",
+      "drifted": true,
+      "score": 0.17,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "target_next",
+      "drifted": true,
+      "score": 0.17,
+      "method": "Jensen-Shannon distance",
+      "threshold": 0.1
+    },
+    {
+      "column": "Security_Force_Response_Time_roll3",
+      "drifted": true,
+      "score": 0.1,
+      "method": "Wasserstein distance (normed)",
+      "threshold": 0.1
+    }
+  ],
+  "stable_columns": [
+    "Region",
+    "Security_Force_Response_Time",
+    "Security_Force_Response_Time_lag1",
+    "m_cos",
+    "m_sin"
+  ],
+  "note": "Evidently flags columns whose distribution moved between the two periods. It says nothing about whether the model's accuracy fell; that needs labels for the new period (here they exist, see results_test.csv)."
+}

@@ -1,0 +1,28 @@
+{
+  "escalation_rate_train": 0.2026875699888018,
+  "escalation_rate_validation": 0.23670212765957446,
+  "escalation_rate_test": 0.42907801418439717,
+  "features_psi_gt_0_25": [
+    "spill_national",
+    "spill_national_lag1",
+    "Social_Unrest_Score_roll3",
+    "Social_Unrest_Score",
+    "Social_Unrest_Score_lag1",
+    "spill_region",
+    "spill_region_lag1",
+    "y_roll12",
+    "y_roll6",
+    "eb_p_enter",
+    "eb_markov_next",
+    "Economic_Volatility_Index_roll3",
+    "y_roll3",
+    "Economic_Volatility_Index",
+    "cum_hist",
+    "Economic_Volatility_Index_lag1",
+    "tension_num",
+    "eb_p_stay"
+  ],
+  "features_psi_0_10_to_0_25": [],
+  "max_feature_psi": 6.5752,
+  "interpretation": "The base rate of escalation more than doubles between training and test periods (prior shift)."
+}

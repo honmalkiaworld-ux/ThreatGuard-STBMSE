@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+artifacts/*.joblib
+data/processed/
+latex/build/
+mlflow.db
+mlruns/
+reports/evidently_drift_report.html
+artifacts/

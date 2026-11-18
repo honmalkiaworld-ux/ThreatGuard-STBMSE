@@ -1,0 +1,27 @@
+{
+  "rows": 5640,
+  "columns": 13,
+  "counties": 47,
+  "year_months": 120,
+  "period": "2015-01 to 2024-12",
+  "panel_cells_expected": 5640,
+  "panel_cells_present": 5640,
+  "duplicate_keys": 0,
+  "missing_values": {},
+  "escalation_rate_overall": 0.2775,
+  "escalation_rate_by_year": {
+    "2015": 0.1472,
+    "2016": 0.1312,
+    "2017": 0.2589,
+    "2018": 0.2482,
+    "2019": 0.2287,
+    "2020": 0.2376,
+    "2021": 0.2358,
+    "2022": 0.3511,
+    "2023": 0.4716,
+    "2024": 0.4645
+  },
+  "errors": [],
+  "warnings": [],
+  "provenance_note": "Columns such as Sentiments, Social_Unrest_Score and Security_Force_Response_Time are not fields of a raw ACLED export; the file is treated as a pre-compiled county-month indicator dataset of unverified origin."
+}

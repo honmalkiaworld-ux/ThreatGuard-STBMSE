@@ -1,0 +1,9 @@
+region,counties,n,observed_escalation_rate,mean_predicted_probability,recall,false_alarm_rate,pr_auc,roc_auc
+Central,6,216,0.454,0.375,0.898,0.712,0.755,0.735
+Coastal,6,216,0.31,0.44,0.985,0.94,0.468,0.696
+Eastern,6,216,0.426,0.298,0.859,0.645,0.662,0.711
+North Eastern,3,108,0.5,0.61,1.0,1.0,0.62,0.666
+Northern,5,180,0.656,0.521,1.0,1.0,0.739,0.632
+Nyanza,6,216,0.426,0.349,0.957,0.895,0.531,0.614
+Rift Valley,11,396,0.381,0.339,0.947,0.771,0.579,0.708
+Western,4,144,0.375,0.288,0.87,0.644,0.59,0.679
