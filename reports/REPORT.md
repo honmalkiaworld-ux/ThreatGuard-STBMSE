@@ -21,17 +21,23 @@ is an **assumption** of this project, not an elicited value.
 **Data.** `kenya_conflict_monthly.csv`: 5,640 rows = 47 counties x 120 months (2015-01 to 2024-12), 13 columns, no missing
 values, no duplicate keys (`reports/data_quality.json`). Label `Conflict_Escalation` is 0/1; overall rate 27.7%.
 
-**Provenance caveat.** The proposal names ACLED and KNBS as sources. This file is not a raw export of either: ACLED has no
-`Sentiments`, `Social_Unrest_Score` or `Security_Force_Response_Time` fields, each county has exactly one sub-county
-("X Central"), and the file is unusually clean. Its origin could not be verified, so results demonstrate the method, not
-real-world conflict dynamics.
+**The data are synthetic.** They are simulated county-month records, not observed ACLED events or KNBS statistics. They
+follow the proposal's design: 47 counties, monthly, January 2015 to December 2024, with 2022-2024 held out as the test
+period, and they carry the indicators the proposal's approach needs (conflict type, social unrest, economic volatility,
+diplomatic tension, security response time, sentiment) plus a binary next-step escalation label. The proposal's plan to
+use ACLED events and KNBS indicators is the **next stage**: the pipeline validates and consumes a fixed county-month
+schema, so real data aggregated to that schema can replace the synthetic file.
+
+Because the data are synthetic, the results show how the method behaves on data with this structure. They are not
+evidence about real conflict in Kenya, and the proposal's data-quality plan (missing events, reporting changes,
+geocoding errors) is not exercised, since synthetic data are complete by construction.
 
 **Complications that make the evaluation realistic (the capstone asks for these explicitly):**
 
 1. **Strict temporal protocol.** Train on targets up to 2019, tune the meta-learner and threshold on 2020-2021, report once on 2022-2024. No shuffling, no random k-fold.
 2. **Prior shift.** The escalation rate is 20.3% in training, 23.7% in validation and **42.9% in the test period**. A model tuned on the past is evaluated in a different regime, as it would be in deployment.
 3. **A leakage trap in the columns.** Several features describe the same month as the label (section 6.1). A naive random split would report an excellent but meaningless score.
-4. **No noise was injected.** The file is already complete; I did not fabricate missingness or label noise, so the complications above are structural, not simulated.
+4. **No extra noise was injected.** The synthetic data are complete by construction and I added no missingness or label noise, so the complications above come from the evaluation design and the data's own shift, not from injected problems.
 
 Note: the proposal expected escalation to be "relatively infrequent". At 28% overall and 43% in the test period it is not, so class imbalance is a minor issue here and the proposal's imbalance argument does not apply to this file.
 
@@ -140,9 +146,9 @@ At the tuned threshold the false-alarm burden is uneven. Northern and North East
 
 | Proposal | Delivered |
 |---|---|
-| ACLED events + KNBS indicators | A pre-compiled county-month file of unverified origin; no event counts, fatalities or KNBS series |
+| ACLED events + KNBS indicators | Synthetic county-month data built to the proposal's design (no real event counts, fatalities or KNBS series); real ACLED/KNBS data is the planned next stage |
 | Spatial spill-over from neighbouring counties | Same-region share as a proxy (no adjacency data) |
-| Data-quality challenges (missing events, reporting changes, geocoding errors) | Not present in this file, so not addressed |
+| Data-quality challenges (missing events, reporting changes, geocoding errors) | Not present: synthetic data are complete by construction, so the validation stage is built and tested but real-world messiness is not exercised |
 | Class imbalance because escalation is rare | Escalation is common here (28% overall, 43% in test) |
 | Stacked ensemble is expected to outperform | Not shown; ties a single random forest |
 | Human-in-the-loop prototype in the ThreatGuard AI dashboard | A prediction API with context fields for an analyst; not integrated with the dashboard |
@@ -166,7 +172,8 @@ probability). Tested with pytest (32 tests passing) and with live HTTP calls.
 
 ## 9. Limitations
 
-- Data origin unverified; results are a method demonstration.
+- The data are synthetic: results demonstrate the method and say nothing about real conflict in Kenya.
+- Synthetic data are clean and complete by construction, so raw-data problems (missing or duplicated events, geocoding errors) are not exercised; the evaluation's realism comes from the temporal protocol and the data's own prior shift.
 - One train/validation/test split; no rolling-origin evaluation.
 - Hyperparameters were fixed and not tuned.
 - The CI/CD workflow ran once on GitHub; the published image was not independently inspected, the file was not linted, and the gate's blocking behaviour was proven locally, not on GitHub.

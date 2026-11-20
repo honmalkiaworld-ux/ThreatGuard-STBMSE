@@ -85,7 +85,7 @@ def log_training_run(*, ensemble, metrics: dict, params: dict, learner_params: d
         mlflow.set_tags({
             "quality_gate": "passed" if gate_passed else "failed",
             "data": "kenya_conflict_monthly.csv",
-            "data_provenance": "unverified (not a raw ACLED/KNBS export)",
+            "data_provenance": "synthetic (simulated county-month data; not ACLED/KNBS)",
             "task": "county-level next-month conflict escalation",
         })
 

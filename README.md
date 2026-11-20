@@ -4,12 +4,12 @@ A reproducible ML pipeline and model service that forecasts **whether a Kenyan c
 built from the proposal *"Spatio-Temporal Bayesian-Markov Stacked Ensemble (ST-BMSE) for County-Level Conflict
 Escalation Forecasting in Kenya"* (Esther Muthui, 223932).
 
-> **Read this first: data provenance.** The proposal specifies ACLED events + KNBS indicators. Those were not
-> available, so this repo runs on `data/raw/kenya_conflict_monthly.csv`, a pre-compiled county-month indicator file
-> (47 counties x 120 months, 2015-2024) **whose origin I could not verify**. Several columns (`Sentiments`,
-> `Social_Unrest_Score`, `Security_Force_Response_Time`) are not fields of a raw ACLED export. Treat every result as a
-> **demonstration of the method on this file**, not as evidence about real conflict in Kenya. See
-> [reports/REPORT.md](reports/REPORT.md) section 7 for the gap between the proposal and the data.
+> **Read this first: the data are synthetic.** `data/raw/kenya_conflict_monthly.csv` holds simulated county-month
+> records built to the proposal's design (47 counties x 120 months, 2015-2024, 2022-2024 held out as the test period).
+> They are **not** observed ACLED events or KNBS statistics; using those is the proposal's planned next stage, and the
+> pipeline consumes a fixed county-month schema so real data can replace the file. Treat every result as a
+> **demonstration of the method**, not as evidence about real conflict in Kenya. See
+> [reports/REPORT.md](reports/REPORT.md) section 7 for how the delivery relates to the proposal.
 
 ## What it does
 

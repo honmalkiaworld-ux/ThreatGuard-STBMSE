@@ -71,9 +71,8 @@ def validate(df: pd.DataFrame) -> dict:
         "escalation_rate_overall": round(float(df[C.TARGET].mean()), 4),
         "escalation_rate_by_year": {int(k): float(v) for k, v in by_year.items()},
         "errors": errors, "warnings": warnings,
-        "provenance_note": ("Columns such as Sentiments, Social_Unrest_Score and Security_Force_Response_Time "
-                            "are not fields of a raw ACLED export; the file is treated as a pre-compiled "
-                            "county-month indicator dataset of unverified origin."),
+        "provenance_note": ("Synthetic (simulated) county-month data built to the proposal's design; not observed "
+                            "ACLED events or KNBS statistics. Real data aggregated to this schema can replace it."),
     }
     if errors:
         raise DataError("; ".join(errors))

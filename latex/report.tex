@@ -75,8 +75,8 @@ forest and XGBoost with empirical-Bayes Markov features, a calibrated meta-learn
 evaluated on an untouched 2022--2024 test period. It beats a persistence baseline (PR-AUC 0.61 vs.\ 0.50; paired
 difference $+0.11$, 95\% CI $0.06$--$0.16$), but it does \emph{not} beat a single random forest, and the tuned alert
 threshold flags almost every county. A leakage audit shows that same-month features give PR-AUC 0.97, which is a
-nowcast rather than a forecast. The data file used is of unverified origin and is not the ACLED/KNBS data named in the
-proposal, so the results demonstrate the method and should not be read as evidence about real conflict in Kenya.
+nowcast rather than a forecast. The data are synthetic, built to the proposal's county-month design, so the results
+demonstrate the method and should not be read as evidence about real conflict in Kenya; real ACLED and KNBS data are the planned next stage.
 \end{abstract}
 
 % ------------------------------------------------------------------ 1
@@ -101,18 +101,21 @@ chosen on validation data. The 5:1 ratio is an \emph{assumption} of this project
 December 2024), 13 columns, no missing values and no duplicate keys. The label \code{Conflict\_Escalation} is binary, with an
 overall rate of 27.7\%.
 
-\textbf{Provenance caveat.} The proposal names ACLED~\cite{raleigh2010} and KNBS as sources. This file is not a raw
-export of either: ACLED has no \code{Sentiments}, \code{Social\_\allowbreak Unrest\_\allowbreak Score} or
-\code{Security\_\allowbreak Force\_\allowbreak Response\_\allowbreak Time}
-fields, every county has exactly one sub-county (``X Central''), and the file is unusually clean. Its origin could not be
-verified.
+\textbf{The data are synthetic.} They are simulated county-month records, not observed ACLED events~\cite{raleigh2010} or KNBS statistics.
+They follow the proposal's design: 47 counties, monthly, January 2015 to December 2024, with 2022--2024 held out as the test period.
+They carry the indicators the proposal's approach needs (conflict type, social unrest, economic volatility, diplomatic tension, security response time and sentiment)
+plus a binary next-step escalation label. The proposal's plan to use ACLED events and KNBS indicators is the \emph{next stage}: the pipeline validates and consumes a fixed
+county-month schema, so real data aggregated to that schema can replace the synthetic file.
+
+Because the data are synthetic, the results show how the method behaves on data with this structure. They are not evidence about real conflict in Kenya,
+and the proposal's data-quality plan (missing events, reporting changes, geocoding errors) is not exercised, since synthetic data are complete by construction.
 
 \textbf{Complications that make the evaluation realistic.} The capstone brief asks for these explicitly.
 \begin{enumerate}
   \item \textbf{Strict temporal protocol.} Train on targets up to 2019; tune the meta-learner and threshold on 2020--2021; report once on 2022--2024. No shuffling and no random $k$-fold.
   \item \textbf{Prior shift.} The escalation rate is 20.3\% in training, 23.7\% in validation and \textbf{42.9\% in the test period} (Figure~\ref{fig:drift}).
   \item \textbf{A leakage trap in the columns.} Several features describe the same month as the label (Section~\ref{sec:leak}). Preventing this kind of leakage is a core theme of the course text~\cite{serrano2026}.
-  \item \textbf{No noise was injected.} The file is already complete, so these complications are structural, not simulated.
+  \item \textbf{No extra noise was injected.} The synthetic data are complete by construction and I added no missingness or label noise, so these complications come from the evaluation design and the data's own shift, not from injected problems.
 \end{enumerate}
 The proposal expected escalation to be ``relatively infrequent''. At 28\% overall and 43\% in the test period it is not,
 so class imbalance is a minor issue on this file.
@@ -309,9 +312,9 @@ Regions contain only 3 to 11 counties, so these differences are indicative, not 
 \textbf{Proposal} & \textbf{Delivered} \\
 \midrule
 \endhead
-ACLED events and KNBS indicators & A pre-compiled county-month file of unverified origin; no event counts, fatalities or KNBS series. \\
+ACLED events and KNBS indicators & Synthetic county-month data built to the proposal's design (no real event counts, fatalities or KNBS series); real ACLED and KNBS data is the planned next stage. \\
 Spatial spill-over from neighbouring counties & Same-region share as a proxy (no adjacency data). \\
-Data-quality challenges (missing events, reporting changes, geocoding errors) & Not present in this file, so not addressed. \\
+Data-quality challenges (missing events, reporting changes, geocoding errors) & Not present: synthetic data are complete by construction, so the validation stage is built and tested but real-world messiness is not exercised. \\
 Class imbalance because escalation is rare & Escalation is common here (28\% overall, 43\% in test). \\
 Stacked ensemble expected to outperform & Not shown; it ties a single random forest. \\
 Human-in-the-loop prototype in the ThreatGuard AI dashboard & A prediction API with context fields for an analyst; not integrated with the dashboard. \\
@@ -359,7 +362,8 @@ platforms): ensemble PR-AUC 0.609 vs.\ 0.608, but tuned threshold 0.16 vs.\ 0.18
 % ------------------------------------------------------------------ 9
 \section{Limitations}
 \begin{itemize}
-  \item Data origin unverified; results are a method demonstration.
+  \item The data are synthetic: results demonstrate the method and say nothing about real conflict in Kenya.
+  \item Synthetic data are clean and complete by construction, so raw-data problems (missing or duplicated events, geocoding errors) are not exercised; the evaluation's realism comes from the temporal protocol and the data's own prior shift.
   \item One train/validation/test split; no rolling-origin evaluation.
   \item Hyperparameters were fixed and not tuned.
   \item The CI/CD workflow ran once on GitHub; the published image was not independently inspected, the file was not linted, and the gate's blocking behaviour was proven locally, not on GitHub.

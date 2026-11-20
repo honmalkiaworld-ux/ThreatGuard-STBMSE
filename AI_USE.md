@@ -12,7 +12,7 @@ Claude (Anthropic), used through Claude Code in VS Code during November 2026.
 
 | Area | AI contribution |
 |---|---|
-| Analysis of the data and proposal | Profiled `kenya_conflict_monthly.csv`, compared it with the proposal's stated requirements, and flagged leakage and provenance concerns |
+| Analysis of the data and proposal | Profiled `kenya_conflict_monthly.csv`, compared it with the proposal's stated requirements, and flagged leakage concerns. The student states that the dataset is synthetic, and the documents describe it that way |
 | Code | Drafted and ran all Python under `src/`, `tests/` and `run_pipeline.py`, the `Dockerfile`, `docker-compose.yml`, the requirements files and the GitHub Actions workflow `.github/workflows/ci.yml`, modelled on the lab repository's `fraud_mlops` and `practicals-mlops` examples |
 | Frontend | Designed and wrote the single-page browser UI (`src/stbmse/static/index.html`), the `/ui` and `/periods` routes and their tests; checked the page in headless Edge at several widths and in dark mode |
 | MLOps additions | Wrote the validation-only quality gate, the MLflow tracking and registry module and the Evidently drift module; installed Docker Desktop, MLflow and Evidently on the student's machine (the Python packages in a separate virtual environment outside OneDrive) |
@@ -25,7 +25,7 @@ Claude (Anthropic), used through Claude Code in VS Code during November 2026.
 - It did not obtain ACLED or KNBS data, and it did not create or log in to any account on the student's behalf.
 - A dedicated linter (`actionlint`) was blocked by the sandbox, so the workflow file was only structurally validated before its first run. The workflow then ran successfully on GitHub after the repository was created and pushed (both the `ci` and `cd` jobs).
 - The published container image was not independently inspected (the available token lacks the `read:packages` scope), and the quality gate's blocking behaviour was proven locally rather than on GitHub.
-- It could not verify where `kenya_conflict_monthly.csv` came from.
+- It did not generate `kenya_conflict_monthly.csv` and does not know how it was generated. It is described as synthetic on the student's statement.
 - It did not choose the research question, the proposal, the 5:1 cost ratio or the 0.05 PR-AUC gate margin. The proposal is the student's; the cost ratio and gate margin are assumptions written into `config.py` and `gate.py`.
 
 ## Student's declaration (to complete)
@@ -33,5 +33,5 @@ Claude (Anthropic), used through Claude Code in VS Code during November 2026.
 - [ ] I have read and understood all code in this repository and can explain every modelling decision.
 - [ ] I re-ran `python run_pipeline.py` and `python -m pytest` myself and obtained the reported results.
 - [ ] I have checked the claims in `reports/REPORT.md` against the generated files in `reports/`.
-- [ ] I verified (or I state here that I could not verify) the origin of the dataset: ______________________
+- [ ] I state how the synthetic dataset was produced (who generated it, with what method or tool): ______________________
 - [ ] Anything I changed from the AI's draft: ______________________

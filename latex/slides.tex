@@ -69,7 +69,7 @@
 \end{frame}
 
 % ---------------------------------------------------------------- 3 data
-\begin{frame}{The data is not the ACLED/KNBS data the proposal assumed}
+\begin{frame}{The data are synthetic, built to the proposal's design}
   \begin{columns}[T]
     \column{0.47\textwidth}
     \textbf{What the file contains}
@@ -80,14 +80,15 @@
       \item Indicators: social unrest, economic volatility, tension, response time, sentiment, conflict type
     \end{itemize}
     \column{0.50\textwidth}
-    \begin{alertblock}{Provenance could not be verified}
+    \begin{block}{What ``synthetic'' means here}
       \small
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item ACLED has no \code{Sentiments} or \code{Social\_Unrest\_Score} fields
-        \item One sub-county per county; unusually clean
+        \item Simulated county-month records, not observed ACLED or KNBS data
+        \item Follows the proposal's design: 47 counties, monthly, 2022--2024 test period
         \item Results demonstrate the \emph{method}, not real conflict in Kenya
+        \item Real ACLED and KNBS data: the planned next stage
       \end{itemize}
-    \end{alertblock}
+    \end{block}
   \end{columns}
 \end{frame}
 
@@ -332,9 +333,9 @@
   \footnotesize
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.3cm}>{\raggedright\arraybackslash}p{7.9cm}@{}}
     \toprule \textbf{Proposal} & \textbf{Delivered} \\ \midrule
-    ACLED events and KNBS indicators & Pre-compiled county-month file of unverified origin \\
+    ACLED events and KNBS indicators & Synthetic county-month data; real data is the next stage \\
     Spatial spill-over from neighbours & Same-region share as a proxy \\
-    Data-quality problems to be handled & Not present in this file \\
+    Data-quality problems to be handled & Not present: synthetic data are complete \\
     Escalation is rare (class imbalance) & Common: 28\% overall, 43\% in test \\
     Stacking expected to outperform & Not shown; ties a random forest \\
     Dashboard integration & API with analyst context; no dashboard \\
@@ -348,7 +349,7 @@
     \column{0.48\textwidth}
     \textbf{Limitations}
     \begin{itemize}\setlength{\itemsep}{3pt}\small
-      \item Data origin unverified
+      \item Synthetic data: no real-world claims
       \item One split; no rolling-origin evaluation
       \item Hyperparameters not tuned
       \item CI/CD ran once; workflow not linted
