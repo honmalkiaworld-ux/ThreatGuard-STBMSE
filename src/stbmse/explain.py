@@ -21,14 +21,23 @@ import json
 import joblib
 import numpy as np
 import pandas as pd
-import shap
 
 from . import config as C
 from .data import ingest
 from .features import build_features, prepare_xy
 
 
+def available() -> bool:
+    """SHAP is an optional dependency (requirements.txt, not requirements-api.txt); the slim Docker image lacks it."""
+    try:
+        import shap  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
 def _tree_values(model, X):
+    import shap                                   # imported here so that importing this module never needs it
     expl = shap.TreeExplainer(model)
     sv = expl.shap_values(X)
     base = expl.expected_value

@@ -320,7 +320,7 @@
     \textbf{MLflow} & Parameters, metrics, tables and model per run; the three learners as nested runs; passing model registered as \code{production} \\
     \textbf{Quality gate} & Validation only: best learner must beat persistence by $\ge 0.05$ PR-AUC. Fail $\to$ exit 1, no model saved, nothing registered \\
     \textbf{Proof} & Real data passes ($+0.179$). Demanding $+0.90$ stopped the pipeline with exit code 1 and left the registry untouched \\
-    \textbf{CI} & Each push: train + gate, audits, Evidently, 54 tests, Docker build, run the container and call it \\
+    \textbf{CI} & Each push: train + gate, audits, Evidently, 56 tests, Docker build, run the container and call it \\
     \textbf{CD} & Push to the container registry only from the default branch, and only if CI passed \\
     \bottomrule
   \end{tabular}
@@ -344,7 +344,7 @@
     \column{0.50\textwidth}
     \textbf{What I verified}
     \begin{itemize}\setlength{\itemsep}{2pt}\small
-      \item 54 pytest tests pass
+      \item 56 pytest tests pass
       \item Slim image builds (gate runs inside the build)
       \item Container \emph{healthy}, non-root; 200 and 422 over HTTP
     \end{itemize}

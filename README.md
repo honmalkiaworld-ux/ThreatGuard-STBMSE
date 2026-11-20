@@ -57,7 +57,7 @@ Requires Python 3.12. From the repository root:
 python -m pip install -r requirements.txt     # full environment: training, MLflow, Evidently, tests
 python run_pipeline.py                        # ingest -> train -> GATE -> MLflow -> audits -> Evidently -> rolling windows -> SHAP -> sample prediction (about 7 min)
 python run_pipeline.py --tune                 # the same, plus the Optuna tuning study (5-10 more minutes; does not change the shipped model)
-python -m pytest -q                           # 54 tests: leakage, the gate, MLflow, Evidently, rolling windows, tuning, SHAP, the API and the browser UI page
+python -m pytest -q                           # 56 tests: leakage, the gate, MLflow, Evidently, rolling windows, tuning, SHAP, slim-install imports, the API and the browser UI page
 python -m uvicorn stbmse.api:app --app-dir src --port 8000
 ```
 
@@ -230,7 +230,7 @@ src/stbmse/
   static/index.html        the analyst view: one self-contained page, no build step, no external requests
 .github/workflows/ci.yml   CI/CD
 latex/                     report.tex, slides.tex (Beamer), make_figures.py -> reports/ST-BMSE_Report.pdf and ST-BMSE_Slides.pdf
-tests/                     54 tests (leakage, splits, validation, gate, MLflow, Evidently, rolling windows, tuning, SHAP, API, UI)
+tests/                     56 tests (leakage, splits, validation, gate, MLflow, Evidently, rolling windows, tuning, SHAP, slim install, API, UI)
 artifacts/                 model.joblib (11.8 MB), metrics.json: the serialized model, committed on purpose
 reports/                   REPORT.md + generated CSV/JSON/HTML results
 data/raw/                  input CSV

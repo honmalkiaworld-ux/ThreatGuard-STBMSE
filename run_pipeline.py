@@ -84,7 +84,10 @@ def main() -> int:
                   f"{s['spearman_vs_permutation_importance']:.2f}")
             for t in s["top_12_weighted_share"][:5]:
                 print(f"    {t['feature']:36s} {t['weighted_share']:.3f}")
-        step("4f. SHAP explanations of the shipped model", _shap)
+        if explain.available():
+            step("4f. SHAP explanations of the shipped model", _shap)
+        else:
+            print("\n=== 4f. SHAP explanations ===\n    skipped: shap is not installed (pip install shap)")
 
     if a.tune:
         from stbmse import tune
