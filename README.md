@@ -2,7 +2,7 @@
 
 A reproducible ML pipeline and model service that forecasts **whether a Kenyan county will escalate next month**,
 built from the proposal *"Spatio-Temporal Bayesian-Markov Stacked Ensemble (ST-BMSE) for County-Level Conflict
-Escalation Forecasting in Kenya"* (Esther Muthui, 223923).
+Escalation Forecasting in Kenya"* (Esther Muthui, 223932).
 
 > **Read this first: data provenance.** The proposal specifies ACLED events + KNBS indicators. Those were not
 > available, so this repo runs on `data/raw/kenya_conflict_monthly.csv`, a pre-compiled county-month indicator file

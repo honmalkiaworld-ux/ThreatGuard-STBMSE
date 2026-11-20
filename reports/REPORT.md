@@ -1,6 +1,6 @@
 # ST-BMSE: forecasting county-level conflict escalation in Kenya
 
-DSA 8401 Applied Machine Learning, capstone report. Student: Esther Muthui (223923).
+DSA 8401 Applied Machine Learning, capstone report. Student: Esther Muthui (223932).
 All numbers below are produced by `python run_pipeline.py` and are stored in `reports/` and `artifacts/metrics.json`.
 
 ## 1. Problem framing
