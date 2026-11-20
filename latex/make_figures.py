@@ -32,6 +32,8 @@ rg = pd.read_csv(REP / "subgroup_by_region.csv").sort_values("false_alarm_rate")
 dq = json.loads((REP / "data_quality.json").read_text())
 yr = pd.Series(dq["escalation_rate_by_year"])
 yr.index = yr.index.astype(int)
+roll = pd.read_csv(REP / "rolling_origin.csv") if (REP / "rolling_origin.csv").exists() else None
+shap_tab = pd.read_csv(REP / "shap_importance.csv") if (REP / "shap_importance.csv").exists() else None
 
 
 def build(K: float, tag: str, sizes: dict):
@@ -150,8 +152,44 @@ def build(K: float, tag: str, sizes: dict):
     ax.legend(frameon=False, loc="lower center", fontsize=9 * K, bbox_to_anchor=(0.45, 1.0), ncol=1)
     save(fig, "fig_region")
 
+    # -------------------------------------------------------------- 6. rolling-origin: ensemble vs persistence per test year
+    if roll is not None:
+        fig, ax = plt.subplots(figsize=sizes["rolling"])
+        xs = np.arange(len(roll))
+        for x, (_, r) in zip(xs, roll.iterrows()):
+            ax.plot([x, x], [r.persistence_pr_auc, r.pr_auc], color="#c3c2b7", lw=2 * K, zorder=1)
+            ax.text(x + 0.12, (r.persistence_pr_auc + r.pr_auc) / 2, f"+{r.pr_auc_gain_over_persistence:.2f}", va="center",
+                    fontsize=9 * K, color=INK)
+        ax.scatter(xs, roll.base_rate, marker="_", s=260 * K, color=GREY, lw=2, zorder=2, label="No-skill (that year's base rate)")
+        ax.scatter(xs, roll.persistence_pr_auc, s=75 * K, color=ORANGE, ec="white", lw=1.4, zorder=3, label="Persistence baseline")
+        ax.scatter(xs, roll.pr_auc, s=75 * K, color=BLUE, ec="white", lw=1.4, zorder=3, label="ST-BMSE ensemble")
+        ax.set_xticks(xs)
+        ax.set_xticklabels([str(int(y)) for y in roll.test_year])
+        ax.set_xlim(-0.5, len(roll) - 0.3)
+        ax.set_ylim(0.15, 0.78)
+        ax.set_xlabel("Test year (each window refits everything on earlier years only)")
+        ax.set_ylabel("PR-AUC")
+        ax.grid(axis="x", visible=False)
+        ax.legend(frameon=False, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=3, fontsize=8.5 * K, handletextpad=0.3,
+                  columnspacing=1.2)
+        save(fig, "fig_rolling")
+
+    # -------------------------------------------------------------- 7. SHAP importance (stacker-weighted share)
+    if shap_tab is not None:
+        top = shap_tab.head(12).iloc[::-1]
+        fig, ax = plt.subplots(figsize=sizes["shap"])
+        ax.barh(range(len(top)), top.weighted_share * 100, height=0.66, color=BLUE, zorder=2)
+        for i, v in enumerate(top.weighted_share * 100):
+            ax.text(v + 0.15, i, f"{v:.1f}%", va="center", fontsize=9 * K, color=INK)
+        ax.set_yticks(range(len(top)))
+        ax.set_yticklabels(top.feature)
+        ax.set_xlabel("Share of total attribution (mean |SHAP|, averaged over the three models by stacker weight)")
+        ax.set_xlim(0, top.weighted_share.max() * 100 * 1.18)
+        ax.grid(axis="y", visible=False)
+        save(fig, "fig_shap")
+
 
 build(1.0, "", {"results": (7.2, 3.3), "leakage": (7.2, 3.1), "calibration": (4.6, 4.2),
-                "drift": (7.2, 3.0), "region": (7.2, 3.5)})
+                "drift": (7.2, 3.0), "region": (7.2, 3.5), "rolling": (7.2, 3.3), "shap": (7.2, 3.7)})
 build(1.45, "_s", {"results": (9.6, 4.0), "leakage": (9.6, 4.0), "calibration": (5.6, 5.0),
-                   "drift": (9.0, 3.6), "region": (9.2, 4.4)})
+                   "drift": (9.0, 3.6), "region": (9.2, 4.4), "rolling": (9.4, 4.0), "shap": (9.6, 4.4)})

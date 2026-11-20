@@ -1,0 +1,128 @@
+{
+  "protocol": {
+    "cv_forecast_years": [
+      2018,
+      2019,
+      2020,
+      2021
+    ],
+    "objective": "mean PR-AUC over expanding-window folds",
+    "sampler": "TPE, seed 42",
+    "trials_per_learner": 25,
+    "test_period_used_for_tuning": false
+  },
+  "learners": {
+    "logistic_regression": {
+      "best_params": {
+        "C": 0.0013151434878787521
+      },
+      "cv_pr_auc_tuned": 0.4252588737577515,
+      "cv_pr_auc_fixed": 0.4168701444559939,
+      "cv_gain": 0.008388729301757603,
+      "n_trials": 25,
+      "fixed_params": {
+        "C": 0.5
+      }
+    },
+    "random_forest": {
+      "best_params": {
+        "n_estimators": 350,
+        "max_depth": 4,
+        "min_samples_leaf": 26,
+        "max_features": 0.5
+      },
+      "cv_pr_auc_tuned": 0.43510547400116895,
+      "cv_pr_auc_fixed": 0.42148260620487044,
+      "cv_gain": 0.01362286779629851,
+      "n_trials": 25,
+      "fixed_params": {
+        "n_estimators": 400,
+        "min_samples_leaf": 5
+      }
+    },
+    "xgboost": {
+      "best_params": {
+        "n_estimators": 150,
+        "max_depth": 3,
+        "learning_rate": 0.03476649150592621,
+        "subsample": 0.7824279936868144,
+        "colsample_bytree": 0.8925879806965068,
+        "min_child_weight": 2,
+        "reg_lambda": 1.0677482709481354
+      },
+      "cv_pr_auc_tuned": 0.42561383667651675,
+      "cv_pr_auc_fixed": 0.4062318566127584,
+      "cv_gain": 0.019381980063758353,
+      "n_trials": 25,
+      "fixed_params": {
+        "n_estimators": 300,
+        "max_depth": 3,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8
+      }
+    }
+  },
+  "test_comparison": {
+    "fixed": {
+      "pr_auc": 0.6076892529970614,
+      "pr_auc_ci95": [
+        0.5197423750568247,
+        0.6893789467472216
+      ],
+      "roc_auc": 0.6909039577023767,
+      "roc_auc_ci95": [
+        0.6386328986510165,
+        0.73427468616977
+      ],
+      "recall": 0.940771349862259,
+      "false_alarm_rate": 0.8053830227743272,
+      "brier": 0.22122274090696947,
+      "threshold": 0.18
+    },
+    "tuned": {
+      "pr_auc": 0.6406233686682963,
+      "pr_auc_ci95": [
+        0.5439215499406913,
+        0.7167291192185803
+      ],
+      "roc_auc": 0.7100964472505975,
+      "roc_auc_ci95": [
+        0.6548930286189131,
+        0.7529888362379342
+      ],
+      "recall": 0.9683195592286501,
+      "false_alarm_rate": 0.8592132505175983,
+      "brier": 0.21505510724642293,
+      "threshold": 0.15
+    }
+  },
+  "paired_pr_auc": {
+    "tuned_minus_fixed_pr_auc": {
+      "point": 0.03293411567123483,
+      "mean": 0.028499860239985575,
+      "ci95": [
+        0.009870123454560304,
+        0.050754681937784325
+      ]
+    },
+    "tuned_minus_persistence_pr_auc": {
+      "point": 0.14252926685278833,
+      "mean": 0.13748134243558802,
+      "ci95": [
+        0.09267773876850127,
+        0.17872468764528415
+      ]
+    },
+    "fixed_minus_persistence_pr_auc": {
+      "point": 0.1095951511815535,
+      "mean": 0.10898148219560244,
+      "ci95": [
+        0.06153140946520369,
+        0.16065426412160877
+      ]
+    }
+  },
+  "verdict": "tuned settings improve test PR-AUC (paired interval excludes 0)",
+  "shipped_model": "unchanged (fixed settings); tuned settings are in reports/tuned_params.json if the author adopts them"
+}

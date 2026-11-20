@@ -165,7 +165,7 @@
 \end{frame}
 
 % ---------------------------------------------------------------- 8 exclusions
-\begin{frame}{What I deliberately left out, and one thing I simply did not do}
+\begin{frame}{What I left out, and what I argued but did not test}
   \footnotesize
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.7cm}>{\raggedright\arraybackslash}p{9.5cm}@{}}
     \toprule \textbf{Not used} & \textbf{Reason} \\ \midrule
@@ -173,9 +173,8 @@
     SVM, LightGBM & No expected gain over the learners already used \\
     K-Means, PCA, t-SNE & Task is supervised; clustering would not improve a one-month forecast \\
     LLM, RAG, agents & No text in the data \\
-    SHAP & Not installed; permutation importance used instead (SHAP is the natural next step) \\
     \midrule
-    \textbf{Hyperparameter search} & \textbf{Not done. Hyperparameters were fixed, not tuned. This is a limitation.} \\
+    \textbf{Not tested} & \textbf{The sequence-model exclusion is an argument, not an experiment. A small GRU baseline would back it up.} \\
     \bottomrule
   \end{tabular}
 \end{frame}
@@ -206,12 +205,48 @@
   \end{itemize}
 \end{frame}
 
+% ---------------------------------------------------------------- 10b rolling origin
+\begin{frame}{The result holds in all five rolling windows}
+  \centering
+  \includegraphics[width=0.84\linewidth]{figures/fig_rolling_s.pdf}
+  \par\vspace{2pt}
+  {\small Each window refits everything on earlier years only. Gain over persistence: $+0.08$ to $+0.18$, every interval excludes zero. \alert{False-alarm rate 0.66--0.96 every year.}\par}
+\end{frame}
+
+% ---------------------------------------------------------------- 10c tuning
+\begin{frame}{Tuning helps a little, and I did not ship it}
+  \small
+  \begin{tabular}{@{}lccc@{}}
+    \toprule \textbf{CV PR-AUC (folds 2018--2021)} & \textbf{Fixed} & \textbf{Tuned} & \textbf{Gain} \\ \midrule
+    Logistic regression & 0.417 & 0.425 & $+0.008$ \\
+    Random forest & 0.422 & 0.435 & $+0.014$ \\
+    XGBoost & 0.406 & 0.426 & $+0.019$ \\
+    \bottomrule
+  \end{tabular}
+  \par\vspace{6pt}
+  \normalsize
+  \begin{itemize}\setlength{\itemsep}{4pt}
+    \item Test PR-AUC (2022--2024, used once): \hl{0.608 $\to$ 0.641}; paired $+0.033$ (CI 0.010 to 0.051)
+    \item But uneven by year: $+0.031$, $+0.056$, $+0.003$; false alarms rise from 0.81 to 0.86
+    \item Tuned settings are far more regularised: a weak signal that the hand-set models overfit a little
+    \item \alert{Shipped model unchanged}: adopting the tuned settings would change every number
+  \end{itemize}
+\end{frame}
+
 % ---------------------------------------------------------------- 11 leakage
 \begin{frame}{Same-month features nearly give the answer: a leakage audit}
   \centering
   \includegraphics[width=0.9\linewidth]{figures/fig_leakage_s.pdf}
   \par\vspace{2pt}
   {\small \code{Sentiments}: 0\% escalation when Positive or Neutral, 83\% when Negative, \emph{in the same month}. A random split would look near-perfect.\par}
+\end{frame}
+
+% ---------------------------------------------------------------- 11b shap
+\begin{frame}{What drives the forecast: SHAP}
+  \centering
+  \includegraphics[width=0.80\linewidth]{figures/fig_shap_s.pdf}
+  \par\vspace{2pt}
+  {\small Indicators 31\%, history 26\%, Markov 17\%. Attribution is \emph{not} added predictive value: history alone forecasts as well.\par}
 \end{frame}
 
 % ---------------------------------------------------------------- 12 alert
@@ -285,7 +320,7 @@
     \textbf{MLflow} & Parameters, metrics, tables and model per run; the three learners as nested runs; passing model registered as \code{production} \\
     \textbf{Quality gate} & Validation only: best learner must beat persistence by $\ge 0.05$ PR-AUC. Fail $\to$ exit 1, no model saved, nothing registered \\
     \textbf{Proof} & Real data passes ($+0.179$). Demanding $+0.90$ stopped the pipeline with exit code 1 and left the registry untouched \\
-    \textbf{CI} & Each push: train + gate, audits, Evidently, 32 tests, Docker build, run the container and call it \\
+    \textbf{CI} & Each push: train + gate, audits, Evidently, 54 tests, Docker build, run the container and call it \\
     \textbf{CD} & Push to the container registry only from the default branch, and only if CI passed \\
     \bottomrule
   \end{tabular}
@@ -309,7 +344,7 @@
     \column{0.50\textwidth}
     \textbf{What I verified}
     \begin{itemize}\setlength{\itemsep}{2pt}\small
-      \item 32 pytest tests pass
+      \item 54 pytest tests pass
       \item Slim image builds (gate runs inside the build)
       \item Container \emph{healthy}, non-root; 200 and 422 over HTTP
     \end{itemize}
@@ -350,8 +385,8 @@
     \textbf{Limitations}
     \begin{itemize}\setlength{\itemsep}{3pt}\small
       \item Synthetic data: no real-world claims
-      \item One split; no rolling-origin evaluation
-      \item Hyperparameters not tuned
+      \item Tuned settings not adopted (modest, uneven gain)
+      \item Only five rolling windows
       \item CI/CD ran once; workflow not linted
       \item 5:1 cost ratio and 0.05 gate margin assumed
       \item No causal claim
@@ -360,8 +395,8 @@
     \textbf{Next}
     \begin{itemize}\setlength{\itemsep}{3pt}\small
       \item Real ACLED and KNBS data, with an explicit escalation definition
-      \item Rolling-origin validation and tuning
-      \item SHAP explanations; lint the workflow
+      \item Adopt or reject the tuned settings; a GRU baseline
+      \item Per-prediction SHAP in the UI; lint the workflow
       \item Threshold set with practitioners
     \end{itemize}
   \end{columns}

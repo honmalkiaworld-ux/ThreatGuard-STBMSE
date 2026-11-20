@@ -100,6 +100,7 @@ class Prepared:
     val: np.ndarray
     test: np.ndarray
     persistence: np.ndarray    # score of the naive "next month = this month" baseline
+    target_year: np.ndarray    # calendar year of the month being forecast (t+1), used to cut rolling windows
 
 
 def prepare_xy(feat: pd.DataFrame) -> Prepared:
@@ -118,4 +119,5 @@ def prepare_xy(feat: pd.DataFrame) -> Prepared:
         val=((tgt_year > C.TRAIN_END_YEAR) & (tgt_year <= C.VAL_END_YEAR)).values,
         test=(tgt_year > C.VAL_END_YEAR).values,
         persistence=d["y_lag0"].values.astype(float),
+        target_year=tgt_year.values.astype(int),
     )

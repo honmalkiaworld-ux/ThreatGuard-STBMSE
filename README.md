@@ -55,8 +55,9 @@ Requires Python 3.12. From the repository root:
 
 ```powershell
 python -m pip install -r requirements.txt     # full environment: training, MLflow, Evidently, tests
-python run_pipeline.py                        # ingest -> train -> GATE -> MLflow -> audits -> Evidently -> sample prediction (about 4 min)
-python -m pytest -q                           # 32 tests: leakage, the gate, MLflow, Evidently, the API and the browser UI page
+python run_pipeline.py                        # ingest -> train -> GATE -> MLflow -> audits -> Evidently -> rolling windows -> SHAP -> sample prediction (about 7 min)
+python run_pipeline.py --tune                 # the same, plus the Optuna tuning study (5-10 more minutes; does not change the shipped model)
+python -m pytest -q                           # 54 tests: leakage, the gate, MLflow, Evidently, rolling windows, tuning, SHAP, the API and the browser UI page
 python -m uvicorn stbmse.api:app --app-dir src --port 8000
 ```
 
@@ -116,6 +117,21 @@ classes; the alert threshold is not at the edge of the search grid. A failed gat
 $env:STBMSE_MIN_GAIN = "0.9"; python run_pipeline.py --fast --skip-audit; echo $LASTEXITCODE    # prints 1
 Remove-Item Env:\STBMSE_MIN_GAIN
 ```
+
+### Modelling depth: rolling windows, tuning and SHAP
+
+Three analyses sit on top of the main evaluation. Each writes its results to `reports/`, and none changes the shipped model.
+
+| Analysis | Run | Output |
+|---|---|---|
+| **Rolling-origin evaluation**: the whole procedure repeated with the cut moved forward one year at a time (5 windows, 2020-2024) | part of `python run_pipeline.py`, or `python -m stbmse.rolling` | `rolling_origin.csv` |
+| **SHAP**: exact per-learner attribution (linear SHAP, TreeSHAP), additivity-checked, combined with the stacker's weights | part of `python run_pipeline.py`, or `python -m stbmse.explain` | `shap_importance.csv`, `shap_summary.json` |
+| **Optuna tuning study**: time-ordered folds that never touch 2022-2024, fixed vs tuned compared like for like | `python run_pipeline.py --tune`, or `python -m stbmse.tune --trials 25` (5-10 minutes) | `tuning_results.json`, `tuned_params.json`, `tuning_per_year.csv` |
+
+Headline findings: the ensemble beats persistence in all five windows (gain +0.08 to +0.18); tuning raises test PR-AUC
+from 0.608 to 0.641 (paired +0.033, uneven by year) but the tuned settings are **not adopted**, because that would change
+every published number; and SHAP and permutation importance agree on the top feature only moderately overall (rank
+correlation 0.49). Adopting the tuned settings is the author's decision: the settings are in `reports/tuned_params.json`.
 
 ### Drift report (Evidently)
 
@@ -206,12 +222,15 @@ src/stbmse/
   train.py                 fit, gate, evaluate, track, serialise
   audit.py                 leakage audit, PSI drift, per-region performance
   monitor.py               Evidently drift report (optional dependency)
+  rolling.py               rolling-origin (expanding-window) evaluation
+  tune.py                  Optuna tuning study (optional dependency; does not change the shipped model)
+  explain.py               SHAP explanations (optional dependency)
   predict.py               Scorer (used by CLI and API)
   api.py                   FastAPI service (also serves the browser UI)
   static/index.html        the analyst view: one self-contained page, no build step, no external requests
 .github/workflows/ci.yml   CI/CD
 latex/                     report.tex, slides.tex (Beamer), make_figures.py -> reports/ST-BMSE_Report.pdf and ST-BMSE_Slides.pdf
-tests/                     32 tests (leakage, splits, validation, gate, MLflow, Evidently, API, UI)
+tests/                     54 tests (leakage, splits, validation, gate, MLflow, Evidently, rolling windows, tuning, SHAP, API, UI)
 artifacts/                 model.joblib (11.8 MB), metrics.json: the serialized model, committed on purpose
 reports/                   REPORT.md + generated CSV/JSON/HTML results
 data/raw/                  input CSV

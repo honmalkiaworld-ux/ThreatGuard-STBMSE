@@ -25,12 +25,22 @@ def best_threshold(y, p, fn_cost: float = C.FN_COST, fp_cost: float = C.FP_COST)
     return float(grid[int(np.argmin(costs))])
 
 
-def make_learners(seed: int = C.SEED) -> dict:
+# The fixed hyper-parameters of the shipped model. `tune.py` searches around these; they are not changed here.
+DEFAULT_PARAMS = {
+    "logistic_regression": {"C": 0.5},
+    "random_forest": {"n_estimators": 400, "min_samples_leaf": 5},
+    "xgboost": {"n_estimators": 300, "max_depth": 3, "learning_rate": 0.05, "subsample": 0.8, "colsample_bytree": 0.8},
+}
+
+
+def make_learners(seed: int = C.SEED, params: dict | None = None) -> dict:
+    """Build the three base learners. `params` overrides DEFAULT_PARAMS per learner (used by the tuning study)."""
+    p = {k: {**v, **((params or {}).get(k, {}))} for k, v in DEFAULT_PARAMS.items()}
     return {
-        "logistic_regression": make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000, C=0.5, random_state=seed)),
-        "random_forest": RandomForestClassifier(400, min_samples_leaf=5, n_jobs=-1, random_state=seed),
-        "xgboost": XGBClassifier(n_estimators=300, max_depth=3, learning_rate=0.05, subsample=0.8,
-                                 colsample_bytree=0.8, eval_metric="logloss", random_state=seed, n_jobs=4),
+        "logistic_regression": make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000, random_state=seed,
+                                                                                   **p["logistic_regression"])),
+        "random_forest": RandomForestClassifier(n_jobs=-1, random_state=seed, **p["random_forest"]),
+        "xgboost": XGBClassifier(eval_metric="logloss", random_state=seed, n_jobs=4, **p["xgboost"]),
     }
 
 
@@ -41,9 +51,10 @@ class StackedEnsemble:
     calibrator) and the decision threshold are fitted on the later validation period, so neither sees test data.
     """
 
-    def __init__(self, seed: int = C.SEED, fn_cost: float = C.FN_COST, fp_cost: float = C.FP_COST):
+    def __init__(self, seed: int = C.SEED, fn_cost: float = C.FN_COST, fp_cost: float = C.FP_COST,
+                 learner_params: dict | None = None):
         self.seed, self.fn_cost, self.fp_cost = seed, fn_cost, fp_cost
-        self.learners = make_learners(seed)
+        self.learners = make_learners(seed, learner_params)
         self.meta = LogisticRegression(C=1.0, max_iter=2000)
         self.columns: list[str] = []
         self.threshold: float = 0.5
@@ -119,7 +130,11 @@ def bootstrap_ci(y, scores: dict, groups, metric=average_precision_score, n_boot
 
 def paired_difference_ci(y, s_a, s_b, groups, metric=average_precision_score, n_boot: int = C.N_BOOTSTRAP,
                          seed: int = C.SEED) -> dict:
-    """CI for metric(a) - metric(b) on the same county-block resamples. If the CI excludes 0 the gap is not noise."""
+    """CI for metric(a) - metric(b) on the same county-block resamples. If the CI excludes 0 the gap is not noise.
+
+    `point` is the plain difference on the full sample (the number to report next to the interval); `mean` is the average
+    over the bootstrap resamples, which differs slightly because resampling counties changes the sample's composition.
+    """
     y, s_a, s_b = np.asarray(y), np.asarray(s_a), np.asarray(s_b)
     rng = np.random.default_rng(seed)
     diffs = []
@@ -127,7 +142,8 @@ def paired_difference_ci(y, s_a, s_b, groups, metric=average_precision_score, n_
         if y[idx].min() == y[idx].max():
             continue
         diffs.append(metric(y[idx], s_a[idx]) - metric(y[idx], s_b[idx]))
-    return {"mean": float(np.mean(diffs)), "ci95": [float(np.percentile(diffs, 2.5)), float(np.percentile(diffs, 97.5))]}
+    return {"point": float(metric(y, s_a) - metric(y, s_b)), "mean": float(np.mean(diffs)),
+            "ci95": [float(np.percentile(diffs, 2.5)), float(np.percentile(diffs, 97.5))]}
 
 
 def calibration_table(y, p, bins: int = 10) -> tuple[pd.DataFrame, float]:

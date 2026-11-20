@@ -1,0 +1,72 @@
+{
+  "rows_explained": 1128,
+  "period": "validation",
+  "units": {
+    "logistic_regression": "log-odds",
+    "random_forest": "probability",
+    "xgboost": "log-odds"
+  },
+  "max_additivity_error": {
+    "logistic_regression": 1.7763568394002505e-15,
+    "random_forest": 9.658940314238862e-15,
+    "xgboost": 2.86102294921875e-06
+  },
+  "additivity_ok": true,
+  "stacker_weights_abs_normalised": {
+    "logistic_regression": 0.4868,
+    "random_forest": 0.3224,
+    "xgboost": 0.1907
+  },
+  "top_12_weighted_share": [
+    {
+      "feature": "Social_Unrest_Score_roll3",
+      "weighted_share": 0.096
+    },
+    {
+      "feature": "cum_hist",
+      "weighted_share": 0.0649
+    },
+    {
+      "feature": "eb_p_stay",
+      "weighted_share": 0.0649
+    },
+    {
+      "feature": "eb_p_enter",
+      "weighted_share": 0.0647
+    },
+    {
+      "feature": "y_roll12",
+      "weighted_share": 0.0581
+    },
+    {
+      "feature": "y_roll6",
+      "weighted_share": 0.0542
+    },
+    {
+      "feature": "eb_markov_next",
+      "weighted_share": 0.0433
+    },
+    {
+      "feature": "spill_national_lag1",
+      "weighted_share": 0.0403
+    },
+    {
+      "feature": "Economic_Volatility_Index_roll3",
+      "weighted_share": 0.0372
+    },
+    {
+      "feature": "Social_Unrest_Score",
+      "weighted_share": 0.0332
+    },
+    {
+      "feature": "y_lag2",
+      "weighted_share": 0.031
+    },
+    {
+      "feature": "Security_Force_Response_Time_roll3",
+      "weighted_share": 0.0288
+    }
+  ],
+  "spearman_vs_permutation_importance": 0.4900517238362517,
+  "note": "Approximation of the blend: per-model shares averaged with the stacker's absolute weights."
+}

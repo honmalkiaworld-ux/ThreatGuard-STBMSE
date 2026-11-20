@@ -176,6 +176,9 @@ Calibrated logistic stacker~\cite{wolpert1992,platt1999} & Combines the three le
 Cost-sensitive threshold & The decision rule reflects unequal error costs. \\
 County-block bootstrap & Rows within a county are autocorrelated, so whole counties are resampled to avoid over-confident intervals. \\
 Permutation importance & Model-agnostic importance computed on the validation set, so the test set stays untouched. \\
+SHAP (exact per learner) & Course-standard attribution: exact linear SHAP for logistic regression and TreeSHAP for the forest and XGBoost, checked for additivity and combined with the stacker's weights (Section~\ref{sec:shap}). \\
+Rolling-origin evaluation & Repeats the whole procedure with the cut moved forward one year at a time (five windows, 2020--2024), so the headline claim does not rest on one lucky or unlucky split (Section~\ref{sec:rolling}). \\
+Optuna tuning study & Searches each learner's hyper-parameters with time-ordered folds that never touch the test period, and compares the result with the fixed settings like for like (Section~\ref{sec:tune}). \\
 PSI drift check & Quantifies the shift between periods. \\
 MLflow tracking and registry & Records every run's parameters, validation and test metrics, tables and model, with the three base learners as nested runs for side-by-side comparison. A passing model is registered as \code{stbmse-ensemble} with alias \code{production}. \\
 Quality gate (validation only) & The best base learner must beat persistence by at least 0.05 PR-AUC on validation, scores must be finite and the alert threshold non-degenerate. A failed gate exits non-zero, writes no model and registers nothing. It uses validation data only, so the test period stays untouched by any decision. \\
@@ -195,8 +198,6 @@ SVM & Needs scaling and a separate probability-calibration step, with no expecte
 LightGBM & Redundant with XGBoost on a dataset this small. \\
 K-Means, DBSCAN, PCA, t-SNE & The task is supervised and a label exists. Clustering counties could describe regions but would not improve a one-month-ahead forecast. \\
 LLM fine-tuning, RAG, agents & There is no text in the file; adding an LLM would be a gimmick. \\
-SHAP & Not installed in the environment; permutation importance was used instead. SHAP is the natural next step for per-prediction explanations. \\
-Hyperparameter search & Hyperparameters were fixed, not tuned (no Optuna or grid search). This is a limitation, not a considered exclusion. \\
 \bottomrule
 \end{longtable}
 
@@ -252,7 +253,81 @@ Ensemble $-$ logistic regression & $+0.013$ & $0.002$ to $0.026$ & Small gain, b
   \item ROC-AUC of about 0.69 means moderate discrimination, not strong. The forecasting signal is modest.
   \item Calibration is acceptable (expected calibration error 0.049; Figure~\ref{fig:cal}). Probabilities are slightly too low in the lower bins because the test base rate exceeds the training one.
   \item \textbf{The tuned alert is operationally poor.} The threshold (0.18) was chosen on 2020--2021, when 24\% of months escalated. In the 43\% test regime it flags most counties: recall 0.94 but a false-alarm rate of 0.81. For December 2024, \textbf{46 of 47 counties alert} at 0.18 and 8 of 47 at 0.50. The API therefore exposes a \code{threshold} override; the right value should be set with practitioners, not by an assumed cost ratio.
-  \item Most important inputs on the validation period (permutation importance): the 3-month mean social-unrest score, the 6- and 12-month escalation shares, cumulative county history, the Markov ``enter escalation'' probability and the North Eastern region indicator.
+  \item Most important inputs on the validation period (permutation importance): the 3-month mean social-unrest score, the 6- and 12-month escalation shares, cumulative county history, the Markov ``enter escalation'' probability and the North Eastern region indicator. SHAP (Section~\ref{sec:shap}) agrees on the top feature and only moderately on the rest.
+\end{itemize}
+
+\subsection{Rolling-origin evaluation}\label{sec:rolling}
+The single split above could be lucky or unlucky, and the escalation rate shifts a lot over time, so the whole procedure was repeated five times with the cut moved forward one year at a time.
+For test year $Y$, the base learners are fitted on forecasts up to $Y-3$, the stacker and threshold on $Y-2$ to $Y-1$, and only year $Y$ is scored. Nothing from the test year or later is ever used, and a test enforces this.
+The 2022 window is exactly the shipped split, scored on 2022 only.
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Rolling-origin results. Gain is the plain difference between the two PR-AUC columns, with a 95\% county-block bootstrap percentile interval around it.}
+\begin{tabular}{@{}cccccrr@{}}
+\toprule
+\textbf{Test year} & \textbf{Base rate} & \textbf{Ensemble} & \textbf{Persistence} & \textbf{Gain (95\% CI)} & \textbf{Recall} & \textbf{False-alarm} \\
+\midrule
+2020 & 0.238 & 0.448 & 0.286 & $+0.161$ (0.070 to 0.243) & 0.92 & 0.77 \\
+2021 & 0.236 & 0.462 & 0.281 & $+0.180$ (0.076 to 0.261) & 0.89 & 0.67 \\
+2022 & 0.351 & 0.528 & 0.413 & $+0.115$ (0.056 to 0.169) & 0.86 & 0.66 \\
+2023 & 0.472 & 0.617 & 0.542 & $+0.075$ (0.012 to 0.151) & 0.98 & 0.90 \\
+2024 & 0.465 & 0.671 & 0.524 & $+0.147$ (0.086 to 0.201) & 1.00 & 0.96 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{figures/fig_rolling.pdf}
+  \caption{PR-AUC by test year. The ensemble beats persistence in every window; the numbers are the gains.}
+  \label{fig:rolling}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{The headline claim holds in every window.} The ensemble beats persistence each year, the paired interval excludes zero all five times, and the mean gain is $+0.136$ (range $+0.075$ to $+0.180$). The earlier finding was not an accident of one split.
+  \item \textbf{PR-AUC rises over time mainly because the base rate rises} (0.24 to 0.47), and persistence rises with it, so the gain over persistence is the fair comparison, not the raw level.
+  \item \textbf{The alert problem is not a one-year accident.} The false-alarm rate is 0.66 to 0.96 in every window; in 2024 the model flags every escalating month and almost every quiet one (recall 1.00, false-alarm rate 0.96).
+  \item The ensemble is not compared with a single random forest here, so this does not revisit that finding.
+\end{itemize}
+
+\subsection{Hyperparameter tuning study}\label{sec:tune}
+The shipped settings were fixed by hand; this study asks whether a search improves on them. Each learner was tuned separately with Optuna (TPE sampler, fixed seed, 25 trials). The objective was the mean PR-AUC over four expanding-window folds
+(forecast years 2018 to 2021, each fitted on earlier years only), so \textbf{the test period was never used for tuning}. The fixed settings were scored on the same folds. Only afterwards were the tuned and fixed ensembles evaluated once on 2022--2024.
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Cross-validated PR-AUC (folds 2018--2021): fixed against tuned settings.}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Learner} & \textbf{Fixed} & \textbf{Tuned} & \textbf{Gain} \\
+\midrule
+Logistic regression & 0.417 & 0.425 & $+0.008$ \\
+Random forest & 0.422 & 0.435 & $+0.014$ \\
+XGBoost & 0.406 & 0.426 & $+0.019$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Test period 2022--2024, evaluated once. Paired difference in PR-AUC (tuned minus fixed): $+0.033$, 95\% CI 0.010 to 0.051.}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & \textbf{PR-AUC (95\% CI)} & \textbf{ROC-AUC} & \textbf{Recall} & \textbf{False-alarm} & \textbf{Threshold} \\
+\midrule
+Fixed (shipped) & 0.608 (0.520--0.689) & 0.691 & 0.94 & 0.81 & 0.18 \\
+Tuned & 0.641 (0.544--0.717) & 0.710 & 0.97 & 0.86 & 0.15 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Tuning helps, modestly.} The cross-validated gains are small ($+0.008$ to $+0.019$). The test gain is larger than those and is not uniform: $+0.031$ (2022), $+0.056$ (2023) and $+0.003$ (2024). One search of 25 trials per learner cannot say more than that.
+  \item \textbf{The tuned settings are much more regularised:} a far stronger penalty for logistic regression ($C=0.0013$ against 0.5), shallower and more constrained trees (forest depth 4, at least 26 samples per leaf) and a slower XGBoost with fewer trees. That points to a weak signal in which the hand-set models overfit a little.
+  \item \textbf{It makes the alert problem slightly worse:} the false-alarm rate rises from 0.81 to 0.86 and the tuned threshold falls to 0.15.
+  \item \textbf{The shipped model is unchanged.} Adopting the tuned settings would change every published number, so it is left as a decision for the author. The tuned settings are in \code{reports/tuned\_params.json}, and \code{python run\_pipeline.py --tune} reruns the study.
 \end{itemize}
 
 \begin{figure}[!htbp]
@@ -305,6 +380,42 @@ Regions contain only 3 to 11 counties, so these differences are indicative, not 
   \label{fig:region}
 \end{figure}
 
+\subsection{SHAP explanations}\label{sec:shap}
+The ensemble blends three learners through a logistic stacker, so there is no closed-form SHAP for the blend. Each learner is therefore explained exactly (exact linear SHAP for logistic regression, TreeSHAP for the forest and XGBoost)
+on the 1{,}128 validation rows, and the three are combined. Because the units differ, each model's mean $|\mathrm{SHAP}|$ is turned into a share of its own total and the shares are averaged with the stacker's absolute weights
+(logistic regression 49\%, forest 32\%, XGBoost 19\%). This approximates the blend's attribution and is not an exact SHAP of it. Every explainer was checked for additivity: the contributions plus the base value reproduce each model's own output to within $3\times10^{-6}$.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.97\linewidth]{figures/fig_shap.pdf}
+  \caption{The twelve features with the largest share of SHAP attribution on the validation period.}
+  \label{fig:shap}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\small
+\caption{SHAP attribution by group of features.}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Group of features} & \textbf{Share} \\
+\midrule
+Indicators (unrest, economy, tension, response time) & 31.2\% \\
+Escalation history & 25.8\% \\
+Empirical-Bayes Markov & 17.3\% \\
+Categorical (region, conflict type, sentiment) & 14.3\% \\
+Spill-over (region and national) & 9.3\% \\
+Calendar & 2.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{The models lean on different things.} Logistic regression relies on the unrest score and the rolling escalation shares; the forest and XGBoost rely mostly on the Markov transition features.
+  \item \textbf{SHAP and permutation importance agree on the top feature but only moderately overall} (Spearman rank correlation 0.49 against the full permutation run; 0.41 against the faster run with fewer repeats that CI uses). Correlated features share credit differently under the two methods, so neither ranking should be read as a precise ordering.
+  \item \textbf{Attribution is not added predictive value.} The indicators carry 31\% of the attribution, yet the leakage audit (Section~\ref{sec:leak}) found the history-only ensemble forecasts as well as the full one. Both are true: the indicators correlate with past escalation, so the models use them, but they do not add accuracy beyond it.
+  SHAP describes how the fitted model computes its output, not what causes escalation.
+\end{itemize}
+
 % ------------------------------------------------------------------ 7
 \section{Gap between the proposal and what was delivered}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{5.6cm}>{\raggedright\arraybackslash}p{10.0cm}@{}}
@@ -329,7 +440,7 @@ the schema in \code{config.REQUIRED\_COLUMNS} or extend \code{data.py}.
 \section{Deployment and real-world relevance}
 A FastAPI service (\code{/predict}, \code{/predict/batch}, \code{/health}, \code{/model-info}) loads the serialised artifact. Features are rebuilt at
 serving time with the same code as training, so training and serving cannot diverge. The API returns the probability, the base-model probabilities and the context an
-analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (32 tests passing) and with live HTTP calls.
+analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (54 tests passing) and with live HTTP calls.
 
 \textbf{Frontend.} The API serves a single-page analyst view at \code{/ui} (Figure~\ref{fig:ui}): all 47 counties ranked by predicted probability, an as-of month selector, an alert-threshold slider,
 region and alerts-only filters, and a detail panel showing what each of the three models says plus context an analyst can check. When the threshold makes nearly every county alert (as the tuned 0.18 does)
@@ -364,8 +475,9 @@ platforms): ensemble PR-AUC 0.609 vs.\ 0.608, but tuned threshold 0.16 vs.\ 0.18
 \begin{itemize}
   \item The data are synthetic: results demonstrate the method and say nothing about real conflict in Kenya.
   \item Synthetic data are clean and complete by construction, so raw-data problems (missing or duplicated events, geocoding errors) are not exercised; the evaluation's realism comes from the temporal protocol and the data's own prior shift.
-  \item One train/validation/test split; no rolling-origin evaluation.
-  \item Hyperparameters were fixed and not tuned.
+  \item The shipped model uses hand-set hyper-parameters. A tuning study found a modest, uneven test-period gain ($+0.033$ PR-AUC) but the tuned settings were not adopted; the study used one search of 25 trials per learner.
+  \item The rolling-origin evaluation has only five windows, and the 2022--2024 windows overlap the main test period.
+  \item SHAP for the blended model is an approximation (per-model shares averaged with the stacker's weights), and sequence models were argued out, not tested.
   \item The CI/CD workflow ran once on GitHub; the published image was not independently inspected, the file was not linted, and the gate's blocking behaviour was proven locally, not on GitHub.
   \item The quality-gate margin ($+0.05$ PR-AUC over persistence) is a judgement, not derived from a requirement.
   \item The 5:1 cost ratio is assumed.

@@ -1,0 +1,44 @@
+feature,share_logistic_regression,share_random_forest,share_xgboost,weighted_share
+Social_Unrest_Score_roll3,0.12288,0.07426,0.06394,0.09596
+cum_hist,0.05523,0.0766,0.06969,0.06488
+eb_p_stay,0.04291,0.08445,0.08784,0.06487
+eb_p_enter,0.03236,0.09705,0.09254,0.0647
+y_roll12,0.08403,0.02469,0.04858,0.05814
+y_roll6,0.06579,0.04573,0.03871,0.05415
+eb_markov_next,0.00764,0.08256,0.06793,0.04329
+spill_national_lag1,0.03044,0.04562,0.0565,0.04031
+Economic_Volatility_Index_roll3,0.03086,0.04161,0.04588,0.03719
+Social_Unrest_Score,0.04935,0.02326,0.00859,0.03317
+y_lag2,0.05448,0.0046,0.01584,0.03103
+Security_Force_Response_Time_roll3,0.02033,0.02581,0.05548,0.0288
+y_lag0,0.03325,0.02552,0.00131,0.02467
+Social_Unrest_Score_lag1,0.03322,0.01685,0.00992,0.02349
+Security_Force_Response_Time_lag1,0.01126,0.03181,0.03974,0.02332
+Security_Force_Response_Time,0.01707,0.02432,0.02983,0.02184
+spill_national,0.02092,0.01837,0.02531,0.02094
+Economic_Volatility_Index,0.01473,0.02495,0.02335,0.01967
+Region_Northern,0.03055,0.00651,0.00267,0.01748
+Region_North Eastern,0.02723,0.00665,0.00977,0.01726
+spill_region_lag1,0.00442,0.0252,0.03498,0.01695
+Region_Coastal,0.02026,0.01316,0.01479,0.01693
+Economic_Volatility_Index_lag1,0.00917,0.02423,0.02285,0.01664
+y_roll3,0.01837,0.01648,0.0048,0.01517
+spill_region,0.01129,0.01325,0.02574,0.01468
+Region_Rift Valley,0.0243,0.00309,0.00519,0.01382
+Conflict_Type_Violence Against Civilians,0.01401,0.0092,0.01382,0.01242
+m_cos,0.0069,0.01556,0.01973,0.01214
+Region_Eastern,0.02029,0.00215,0.00239,0.01103
+y_lag1,0.01389,0.00265,0.01206,0.00992
+m_sin,0.00588,0.01405,0.01138,0.00956
+Sentiments_Negative,0.00368,0.02165,0.00376,0.00949
+Region_Central,0.01681,0.00202,0.00222,0.00926
+tension_num,0.00279,0.01833,0.00861,0.00891
+Region_Western,0.01418,0.00166,0.00458,0.00831
+Conflict_Type_Political Tension,0.00787,0.00879,0.00801,0.0082
+Sentiments_Positive,0.00629,0.01315,0.00223,0.00773
+Conflict_Type_Armed Conflict,0.00493,0.00167,0.00307,0.00352
+Historical_Conflict_Presence,0.00348,0.00386,0.00059,0.00305
+Region_Nyanza,0.00246,0.00285,0.00279,0.00265
+Conflict_Type_Civil Unrest,0.00082,0.00381,0.00186,0.00198
+Sentiments_Neutral,0.00283,0.00154,0.0004,0.00195
+Conflict_Type_Terrorism,0.00055,0.00044,0.00071,0.00055
