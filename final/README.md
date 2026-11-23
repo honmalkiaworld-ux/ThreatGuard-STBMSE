@@ -212,6 +212,13 @@ Application programming interface; if your course expects Streamlit specifically
 Checked in a real browser (headless Edge, desktop, phone width, light and dark) and served from the Docker container.
 It has **not** been tested in Firefox or Safari, or with a screen reader; rows are keyboard-focusable with Enter/Space.
 
+## Live deployment on Render
+
+`render.yaml` describes the web service. On https://render.com: sign in with GitHub, choose **New, Blueprint**, select this
+repository and apply. Render builds the Docker image (the model is trained inside the build), checks `/health`, and serves
+the browser page at the service address it gives you (the first request after idle time takes about a minute on the free plan).
+Not yet deployed: the live link is added here once the service exists.
+
 ## Application programming interface
 
 | Method | Path | Purpose |

@@ -1,0 +1,14 @@
+# Render blueprint: deploys the Docker image (trained inside the build) as a web service.
+# Dashboard: New > Blueprint > pick this repository. The free plan sleeps after inactivity,
+# so the first request after a pause takes about a minute.
+services:
+  - type: web
+    name: threatguard-stbmse
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8000"
