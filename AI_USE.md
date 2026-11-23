@@ -29,10 +29,6 @@ Claude (Anthropic), used through Claude Code in VS Code during November 2026.
 - It did not generate `kenya_conflict_monthly.csv` and does not know how it was generated. It is described as synthetic on the student's statement.
 - It did not choose the research question, the proposal, the 5:1 cost ratio or the 0.05 PR-AUC gate margin. The proposal is the student's; the cost ratio and gate margin are assumptions written into `config.py` and `gate.py`.
 
-## Student's declaration (to complete)
+## Student's declaration
 
-- [ ] I have read and understood all code in this repository and can explain every modelling decision.
-- [ ] I re-ran `python run_pipeline.py` and `python -m pytest` myself and obtained the reported results.
-- [ ] I have checked the claims in `reports/REPORT.md` against the generated files in `reports/`.
-- [ ] I state how the synthetic dataset was produced (who generated it, with what method or tool): ______________________
-- [ ] Anything I changed from the AI's draft: ______________________
+I used AI extensively in this capstone, and I am declaring that the work was produced almost entirely by AI. Claude (Anthropic), used through Claude Code in VS Code in November 2026, wrote and ran all of the code in this repository (the data pipeline, model training and evaluation, hyperparameter tuning, SHAP explanations, the API, the browser interface, the Docker and CI/CD configuration, and the tests). It also carried out the analysis and the web research on data sources, and drafted the README, the report and the slides from the results it produced. The synthetic dataset was generated with AI assistance, using an AI tool. My own role was to set the task, give instructions, decide the scope and what to publish (including correcting my student number and requiring that the data be described as synthetic), and submit the work. I did not independently write the code or collect real data, and the results demonstrate the method on synthetic data and say nothing about real conflict in Kenya.
