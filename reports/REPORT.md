@@ -1,4 +1,4 @@
-# Spatio-Temporal Bayesian-Markov Stacked Ensemble: forecasting county-level conflict escalation in Kenya
+# ThreatGuard ST-BMSE: county-level conflict escalation forecasting
 
 DSA 8401 Applied Machine Learning, capstone report. Student: Esther Muthui (223932).
 All numbers below are produced by `python run_pipeline.py` and are stored in `reports/` and `artifacts/metrics.json`.

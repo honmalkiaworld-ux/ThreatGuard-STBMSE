@@ -1,6 +1,6 @@
 <p align="center"><img src="latex/figures/strathmore_logo.png" alt="Strathmore University" height="120"></p>
 
-# ThreatGuard Spatio-Temporal Bayesian-Markov Stacked Ensemble: county-level conflict escalation forecasting (DSA 8401 capstone)
+# ThreatGuard ST-BMSE: county-level conflict escalation forecasting (DSA 8401 capstone)
 
 A reproducible ML pipeline and model service that forecasts **whether a Kenyan county will escalate next month**,
 built from the proposal *"Spatio-Temporal Bayesian-Markov Stacked Ensemble (Spatio-Temporal Bayesian-Markov Stacked Ensemble) for County-Level Conflict
