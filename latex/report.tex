@@ -114,7 +114,7 @@ and the proposal's data-quality plan (missing events, reporting changes, geocodi
 \begin{enumerate}
   \item \textbf{Strict temporal protocol.} Train on targets up to 2019; tune the meta-learner and threshold on 2020--2021; report once on 2022--2024. No shuffling and no random $k$-fold.
   \item \textbf{Prior shift.} The escalation rate is 20.3\% in training, 23.7\% in validation and \textbf{42.9\% in the test period} (Figure~\ref{fig:drift}).
-  \item \textbf{A leakage trap in the columns.} Several features describe the same month as the label (Section~\ref{sec:leak}). Preventing this kind of leakage is a core theme of the course text~\cite{serrano2026}.
+  \item \textbf{A leakage trap in the columns.} Several features describe the same month as the label (Section~\ref{sec:leak}).
   \item \textbf{No extra noise was injected.} The synthetic data are complete by construction and I added no missingness or label noise, so these complications come from the evaluation design and the data's own shift, not from injected problems.
 \end{enumerate}
 The proposal expected escalation to be ``relatively infrequent''. At 28\% overall and 43\% in the test period it is not,
@@ -506,7 +506,6 @@ The Evidently report is written to \code{reports/evidently\_drift\_report.html};
 \bibitem{wolpert1992} D.~H.~Wolpert. Stacked generalization. \emph{Neural Networks}, 5(2):241--259, 1992.
 \bibitem{platt1999} J.~Platt. Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods. In \emph{Advances in Large Margin Classifiers}, pages 61--74. MIT Press, 1999.
 \bibitem{saito2015} T.~Saito and M.~Rehmsmeier. The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. \emph{PLoS ONE}, 10(3):e0118432, 2015.
-\bibitem{serrano2026} J.~Serrano and E.~L.~Bundi. \emph{Applied Machine Learning: From Foundations to Production Systems}. iLabAfrica, Strathmore University, 2026 (course textbook).
 \end{thebibliography}
 
 \end{document}
