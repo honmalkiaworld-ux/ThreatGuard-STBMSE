@@ -217,7 +217,8 @@ It has **not** been tested in Firefox or Safari, or with a screen reader; rows a
 `render.yaml` describes the web service. On https://render.com: sign in with GitHub, choose **New, Blueprint**, select this
 repository and apply. Render builds the Docker image (the model is trained inside the build), checks `/health`, and serves
 the browser page at the service address it gives you (the first request after idle time takes about a minute on the free plan).
-Not yet deployed: the live link is added here once the service exists.
+
+**Live service: https://threatguard-stbmse.onrender.com** (open `/` for the browser page, `/docs` for the interface reference, `/health` for a status check). Free plan: the first request after a pause takes about a minute.
 
 ## Application programming interface
 

@@ -1,6 +1,8 @@
 # ThreatGuard ST-BMSE: county-level conflict escalation forecasting
 
 DSA 8401 Applied Machine Learning, capstone report. Student: Esther Muthui (223932). Lecturers: Prof. Javier Serrano and Emmanuel Bundi.
+
+Live service: https://threatguard-stbmse.onrender.com
 All numbers below are produced by `python run_pipeline.py` and are stored in `reports/` and `artifacts/metrics.json`.
 
 ## 1. Problem framing
