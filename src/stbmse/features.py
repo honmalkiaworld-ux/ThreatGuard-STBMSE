@@ -21,7 +21,7 @@ def build_features(df: pd.DataFrame, k_prior: float = C.K_PRIOR) -> pd.DataFrame
     df = df.sort_values(["County", "t"]).reset_index(drop=True).copy()
     g = df.groupby("County")
 
-    # --- temporal memory of the county -------------------------------------------------
+    # temporal memory of the county
     df["y_lag0"] = df[y]
     df["y_lag1"] = g[y].shift(1)
     df["y_lag2"] = g[y].shift(2)
@@ -32,7 +32,7 @@ def build_features(df: pd.DataFrame, k_prior: float = C.K_PRIOR) -> pd.DataFrame
         df[f"{c}_lag1"] = g[c].shift(1)
         df[f"{c}_roll3"] = g[c].transform(lambda s: s.rolling(3, min_periods=1).mean())
 
-    # --- spatial spill-over proxy -----------------------------------------------------
+    # spatial spill-over proxy
     # No county adjacency file is available, so "neighbourhood" = the other counties of the same region.
     reg_sum = df.groupby(["Region", "t"])[y].transform("sum")
     reg_n = df.groupby(["Region", "t"])[y].transform("count")
@@ -41,7 +41,7 @@ def build_features(df: pd.DataFrame, k_prior: float = C.K_PRIOR) -> pd.DataFrame
     df["spill_national"] = df.groupby("t")[y].transform("mean")
     df["spill_national_lag1"] = df.groupby("County")["spill_national"].shift(1)
 
-    # --- empirical-Bayes Markov transition probabilities ---------------------------------
+    # empirical-Bayes Markov transition probabilities
     # P(escalate next | current state), shrunk toward the pooled rate; counts include only transitions seen by t.
     df["prev"] = g[y].shift(1)
     tr = df.dropna(subset=["prev"])[["County", "t", "prev", y]].copy()
@@ -68,7 +68,7 @@ def build_features(df: pd.DataFrame, k_prior: float = C.K_PRIOR) -> pd.DataFrame
     df["eb_p_stay"] = df["eb_p_from1"]
     df["eb_p_enter"] = df["eb_p_from0"]
 
-    # --- calendar ---------------------------------------------------------------------
+    # calendar
     df["m_sin"] = np.sin(2 * np.pi * df["Month"] / 12)
     df["m_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
     return df.drop(columns=["prev"] + [c for c in df.columns if c.startswith("n0") or c.startswith("n1")])

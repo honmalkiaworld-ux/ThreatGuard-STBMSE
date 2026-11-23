@@ -24,7 +24,7 @@
   \hfill\raisebox{-1pt}{\includegraphics[height=0.72cm]{figures/strathmore_logo_wide.png}}\par
   \vspace{-3pt}\color{navy}\rule{\linewidth}{0.6pt}}
 \setbeamertemplate{footline}{%
-  \hfill\color{black!50}\footnotesize ST-BMSE \textbullet{} Esther Muthui (223932) \hspace{1em} \insertframenumber\hspace{0.6cm}\vspace{5pt}}
+  \hfill\color{black!50}\footnotesize Esther Muthui (223932) \hspace{1em} \insertframenumber\hspace{0.6cm}\vspace{5pt}}
 \setbeamertemplate{itemize items}[circle]
 \setbeamercolor{itemize item}{fg=navy}
 \setbeamerfont{itemize/enumerate body}{size=\normalsize}
@@ -41,12 +41,12 @@
 
 \begin{document}
 
-% ---------------------------------------------------------------- 1 title
+% 1 title
 \begin{frame}[plain]
   \vspace{4pt}
-  \includegraphics[height=2.5cm]{figures/strathmore_logo.png}\par
+  \includegraphics[height=2.1cm]{figures/strathmore_logo.png}\par
   \vfill
-  {\color{navy}\fontsize{30}{34}\selectfont\bfseries ST-BMSE\par}
+  {\color{navy}\fontsize{22}{26}\selectfont\bfseries Spatio-Temporal Bayesian-Markov Stacked Ensemble\par}
   \vspace{4pt}
   {\color{navy}\LARGE\bfseries Forecasting county-level conflict escalation in Kenya\par}
   \vspace{10pt}
@@ -59,7 +59,7 @@
   {\footnotesize\color{black!60} A stacked ensemble with empirical-Bayes Markov features, evaluated on an untouched 2022--2024 test period.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 2 problem
+% 2 problem
 \begin{frame}{Which Kenyan counties will escalate \emph{next} month?}
   \begin{itemize}\setlength{\itemsep}{7pt}
     \item \hl{Task:} for each of 47 counties, estimate $P(\text{escalation in month } t{+}1)$ using only what is known at month $t$.
@@ -67,17 +67,23 @@
     \item \hl{Why:} early warning relies on slow, qualitative field reports that are hard to compare across counties.
     \item \hl{Unequal costs:} a missed escalation is worse than a false alarm, so the alert threshold minimises expected cost
   \end{itemize}
+  {\footnotesize
   \[
-    \tau^\star=\arg\min_{\tau}\big[\,C_{FN}\,FN(\tau)+C_{FP}\,FP(\tau)\,\big],\qquad C_{FN}:C_{FP}=5:1 \;\;\text{(my assumption)}
+    \tau^\star=\arg\min_{\tau}\Big[\text{cost of a false negative}\times\text{false negatives}(\tau)+\text{cost of a false positive}\times\text{false positives}(\tau)\Big]
   \]
+  \[
+    \text{cost of a false negative}:\text{cost of a false positive}=5:1\;\;\text{(my assumption)}
+  \]
+  \par}
+  {\footnotesize False negatives: real escalations with no alert (missed). False positives: alerts with no escalation (false alarms). $\tau$: alert threshold; $\tau^\star$: the threshold with the smallest expected cost. $5:1$: one missed escalation counts as five false alarms.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 3 data
+% 3 data
 \begin{frame}{The data are synthetic, built to the proposal's design}
   \begin{columns}[T]
     \column{0.47\textwidth}
     \textbf{What the file contains}
-    \begin{itemize}\setlength{\itemsep}{3pt}
+    \begin{itemize}\setlength{\itemsep}{2pt}\small
       \item 5{,}640 rows: 47 counties $\times$ 120 months (2015--2024)
       \item 13 columns, no missing values, no duplicate keys
       \item Label: \code{Conflict\_Escalation} (28\% overall)
@@ -87,16 +93,16 @@
     \begin{block}{What ``synthetic'' means here}
       \small
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item Simulated county-month records, not observed ACLED or KNBS data
-        \item Follows the proposal's design: 47 counties, monthly, 2022--2024 test period
+        \item Simulated county-month records, not observed Armed Conflict Location and Event Data Project or Kenya National Bureau of Statistics data
+        \item Follows the proposal's design: 47 counties, monthly
         \item Results demonstrate the \emph{method}, not real conflict in Kenya
-        \item Real ACLED and KNBS data: the planned next stage
+        \item Real data are the planned next stage
       \end{itemize}
     \end{block}
   \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------- 4 evaluation
+% 4 evaluation
 \begin{frame}{Evaluation runs forward in time, and the world shifts under it}
   \begin{columns}[T]
     \column{0.36\textwidth}
@@ -115,15 +121,15 @@
   \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------- 5 pipeline
-\begin{frame}{A scripted, reproducible pipeline, served as an API}
+% 5 pipeline
+\begin{frame}{A scripted, reproducible pipeline, served as an application programming interface}
   \centering
   \vspace{4pt}
   \begin{tikzpicture}[
     box/.style={draw=navy,fill=navy!6,rounded corners=2pt,minimum height=12mm,text width=2.45cm,align=center,font=\footnotesize},
     arr/.style={-{Stealth[length=2.4mm]},thick,navy},
     node distance=8mm and 7mm]
-    \node[box] (a) {Raw CSV\\47 $\times$ 120};
+    \node[box] (a) {Raw comma-separated values\\47 $\times$ 120};
     \node[box,right=of a] (b) {Validate\\schema, integrity};
     \node[box,right=of b] (c) {Causal features\\43, known at $t$};
     \node[box,right=of c] (d) {Temporal split\\train / val / test};
@@ -138,7 +144,7 @@
   {\small One command reproduces everything: \code{python run\_pipeline.py}. Not notebook-based.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 6 features
+% 6 features
 \begin{frame}{Features use only what is known at month $t$}
   \begin{itemize}\setlength{\itemsep}{5pt}
     \item \hl{43 features:} escalation lags and 3/6/12-month shares, rolling indicators, calendar, one-hot categories
@@ -153,7 +159,7 @@
   \end{block}
 \end{frame}
 
-% ---------------------------------------------------------------- 7 models
+% 7 models
 \begin{frame}{Three learners, one calibrated blend, one cost-based threshold}
   \small
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{9.6cm}@{}}
@@ -168,34 +174,34 @@
   \end{tabular}
 \end{frame}
 
-% ---------------------------------------------------------------- 8 exclusions
+% 8 exclusions
 \begin{frame}{What I left out, and what I argued but did not test}
   \footnotesize
-  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.7cm}>{\raggedright\arraybackslash}p{9.5cm}@{}}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{9.0cm}@{}}
     \toprule \textbf{Not used} & \textbf{Reason} \\ \midrule
-    LSTM / GRU / Transformer & 47 series of 120 points is too little data; interpretability suffers (argued, not tested) \\
-    SVM, LightGBM & No expected gain over the learners already used \\
-    K-Means, PCA, t-SNE & Task is supervised; clustering would not improve a one-month forecast \\
-    LLM, RAG, agents & No text in the data \\
+    Long short-term memory / gated recurrent unit / Transformer & 47 series of 120 points is too little data; interpretability suffers (argued, not tested) \\
+    Support vector machine, LightGBM & No expected gain over the learners already used \\
+    K-Means, principal component analysis, t-distributed stochastic neighbour embedding & Task is supervised; clustering would not improve a one-month forecast \\
+    Large language model, retrieval-augmented generation, agents & No text in the data \\
     \midrule
-    \textbf{Not tested} & \textbf{The sequence-model exclusion is an argument, not an experiment. A small GRU baseline would back it up.} \\
+    \textbf{Not tested} & \textbf{The sequence-model exclusion is an argument, not an experiment. A small gated recurrent unit baseline would back it up.} \\
     \bottomrule
   \end{tabular}
 \end{frame}
 
-% ---------------------------------------------------------------- 9 results
+% 9 results
 \begin{frame}{The ensemble beats the persistence baseline}
   \centering
   \includegraphics[width=0.92\linewidth]{figures/fig_results_s.pdf}
   \par\vspace{2pt}
-  {\small Paired gain over persistence: \hl{+0.109 PR-AUC} (95\% CI 0.062 to 0.161), so it is outside noise.\par}
+  {\small Paired gain over persistence: \hl{+0.109 precision-recall area under the curve} (95\% confidence interval 0.062 to 0.161), so it is outside noise.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 10 honest comparison
+% 10 honest comparison
 \begin{frame}{\ldots but it does not beat a single random forest}
   \small
-  \begin{tabular}{@{}lccl@{}}
-    \toprule \textbf{PR-AUC difference} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Reading} \\ \midrule
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.4cm}cc>{\raggedright\arraybackslash}p{3.4cm}@{}}
+    \toprule \textbf{Precision-recall area under the curve difference} & \textbf{Estimate} & \textbf{95\% confidence interval} & \textbf{Reading} \\ \midrule
     Ensemble $-$ persistence & $+0.109$ & $0.062$ to $0.161$ & Real improvement \\
     Ensemble $-$ random forest & $-0.011$ & $-0.031$ to $+0.016$ & No evidence of a gain \\
     Ensemble $-$ logistic regression & $+0.013$ & $0.002$ to $0.026$ & Small, borderline \\
@@ -204,12 +210,12 @@
   \normalsize
   \begin{itemize}\setlength{\itemsep}{6pt}
     \item The proposal's claim that stacking helps is \alert{not supported} on this data.
-    \item ROC-AUC is about 0.69: moderate discrimination, not strong.
-    \item Calibration is acceptable (ECE 0.049); Brier 0.221 against 0.383 for persistence.
+    \item Receiver operating characteristic area under the curve is about 0.69: moderate discrimination, not strong.
+    \item Calibration is acceptable (expected calibration error 0.049); Brier 0.221 against 0.383 for persistence.
   \end{itemize}
 \end{frame}
 
-% ---------------------------------------------------------------- 10b rolling origin
+% 10b rolling origin
 \begin{frame}{The result holds in all five rolling windows}
   \centering
   \includegraphics[width=0.84\linewidth]{figures/fig_rolling_s.pdf}
@@ -217,11 +223,11 @@
   {\small Each window refits everything on earlier years only. Gain over persistence: $+0.08$ to $+0.18$, every interval excludes zero. \alert{False-alarm rate 0.66--0.96 every year.}\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 10c tuning
+% 10c tuning
 \begin{frame}{Tuning helps a little, and I did not ship it}
   \small
-  \begin{tabular}{@{}lccc@{}}
-    \toprule \textbf{CV PR-AUC (folds 2018--2021)} & \textbf{Fixed} & \textbf{Tuned} & \textbf{Gain} \\ \midrule
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{7.4cm}ccc@{}}
+    \toprule \textbf{Cross-validated precision-recall area under the curve (folds 2018--2021)} & \textbf{Fixed} & \textbf{Tuned} & \textbf{Gain} \\ \midrule
     Logistic regression & 0.417 & 0.425 & $+0.008$ \\
     Random forest & 0.422 & 0.435 & $+0.014$ \\
     XGBoost & 0.406 & 0.426 & $+0.019$ \\
@@ -230,14 +236,14 @@
   \par\vspace{6pt}
   \normalsize
   \begin{itemize}\setlength{\itemsep}{4pt}
-    \item Test PR-AUC (2022--2024, used once): \hl{0.608 $\to$ 0.641}; paired $+0.033$ (CI 0.010 to 0.051)
+    \item Test precision-recall area under the curve (2022--2024, used once): \hl{0.608 $\to$ 0.641}; paired $+0.033$ (confidence interval 0.010 to 0.051)
     \item But uneven by year: $+0.031$, $+0.056$, $+0.003$; false alarms rise from 0.81 to 0.86
     \item Tuned settings are far more regularised: a weak signal that the hand-set models overfit a little
     \item \alert{Shipped model unchanged}: adopting the tuned settings would change every number
   \end{itemize}
 \end{frame}
 
-% ---------------------------------------------------------------- 11 leakage
+% 11 leakage
 \begin{frame}{Same-month features nearly give the answer: a leakage audit}
   \centering
   \includegraphics[width=0.9\linewidth]{figures/fig_leakage_s.pdf}
@@ -245,15 +251,15 @@
   {\small \code{Sentiments}: 0\% escalation when Positive or Neutral, 83\% when Negative, \emph{in the same month}. A random split would look near-perfect.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 11b shap
-\begin{frame}{What drives the forecast: SHAP}
+% 11b shap
+\begin{frame}{What drives the forecast: Shapley additive explanations}
   \centering
   \includegraphics[width=0.80\linewidth]{figures/fig_shap_s.pdf}
   \par\vspace{2pt}
   {\small Indicators 31\%, history 26\%, Markov 17\%. Attribution is \emph{not} added predictive value: history alone forecasts as well.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 12 alert
+% 12 alert
 \begin{frame}{The tuned alert flags almost every county}
   \begin{columns}[T]
     \column{0.55\textwidth}
@@ -261,7 +267,7 @@
       \item Threshold 0.18 was tuned on 2020--2021, when 24\% of months escalated.
       \item In the 43\% test regime: recall 0.94, \alert{false-alarm rate 0.81}.
       \item Latest month (Dec 2024): \alert{46 of 47 counties alert} at 0.18, 8 of 47 at 0.50.
-      \item The API exposes a \code{threshold} override; the right value must be set with practitioners.
+      \item The application programming interface exposes a \code{threshold} override; the right value must be set with practitioners.
     \end{itemize}
     \column{0.42\textwidth}
     \begin{alertblock}{Takeaway}
@@ -270,7 +276,7 @@
   \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------- 13 fairness
+% 13 fairness
 \begin{frame}{False alarms fall unevenly across regions}
   \centering
   \includegraphics[width=0.84\linewidth]{figures/fig_region_s.pdf}
@@ -278,7 +284,7 @@
   {\small Regions hold only 3 to 11 counties, so the differences are indicative, not conclusive.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 14 calibration
+% 14 calibration
 \begin{frame}{Probabilities are usable, but the base rate is drifting}
   \begin{columns}[c]
     \column{0.40\textwidth}
@@ -287,17 +293,17 @@
     \begin{itemize}\setlength{\itemsep}{6pt}
       \item Expected calibration error \hl{0.049}.
       \item Slightly too low in low bins: the test base rate exceeds the training one.
-      \item 18 continuous features have PSI above 0.25 between training and test.
+      \item 18 continuous features have population stability index above 0.25 between training and test.
       \item \hl{Implication:} retrain and re-tune the threshold on recent data.
     \end{itemize}
   \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------- 14b evidently
+% 14b evidently
 \begin{frame}{Evidently confirms it: 27 of 32 columns drifted, including the predictions}
   \begin{columns}[T]
     \column{0.55\textwidth}
-    \textbf{Training period vs test period}
+    \textbf{Training period versus test period}
     \begin{itemize}\setlength{\itemsep}{4pt}
       \item \hl{27 of 32 columns (84\%)} drifted; dataset drift detected
       \item \alert{Prediction drift}: score 1.31 against a 0.1 threshold
@@ -313,19 +319,19 @@
     \end{block}
   \end{columns}
   \vspace{4pt}
-  {\footnotesize Agrees with the hand-built PSI check (18 features above 0.25). Full report: \code{reports/evidently\_drift\_report.html}.\par}
+  {\footnotesize Agrees with the hand-built population stability index check (18 features above 0.25). Full report: \code{reports/evidently\_drift\_report.html}.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 14c mlops
-\begin{frame}{Every run is tracked and gated, and CI/CD ships only what passes}
-  \small
-  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{10.5cm}@{}}
+% 14c mlops
+\begin{frame}{Every run is tracked and gated, and continuous delivery ships only what passes}
+  \footnotesize
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{9.8cm}@{}}
     \toprule
     \textbf{MLflow} & Parameters, metrics, tables and model per run; the three learners as nested runs; passing model registered as \code{production} \\
-    \textbf{Quality gate} & Validation only: best learner must beat persistence by $\ge 0.05$ PR-AUC. Fail $\to$ exit 1, no model saved, nothing registered \\
+    \textbf{Quality gate} & Validation only: best learner must beat persistence by $\ge 0.05$ precision-recall area under the curve. Fail $\to$ exit 1, no model saved, nothing registered \\
     \textbf{Proof} & Real data passes ($+0.179$). Demanding $+0.90$ stopped the pipeline with exit code 1 and left the registry untouched \\
-    \textbf{CI} & Each push: train + gate, audits, Evidently, 57 tests, Docker build, run the container and call it \\
-    \textbf{CD} & Push to the container registry only from the default branch, and only if CI passed \\
+    \textbf{Continuous integration} & Each push: train + gate, audits, Evidently, 57 tests, Docker build, run the container and call it \\
+    \textbf{Continuous delivery} & Push to the container registry only from the default branch, and only if continuous integration passed \\
     \bottomrule
   \end{tabular}
   \vspace{6pt}
@@ -334,8 +340,8 @@
   \end{alertblock}
 \end{frame}
 
-% ---------------------------------------------------------------- 15 deployment
-\begin{frame}{Served as an API in Docker, verified end to end}
+% 15 deployment
+\begin{frame}{Served as an application programming interface in Docker, verified end to end}
   \begin{columns}[T]
     \column{0.47\textwidth}
     \textbf{FastAPI endpoints}
@@ -343,46 +349,46 @@
       \item \code{POST /predict}: one county
       \item \code{POST /predict/batch}: ranked list
       \item \code{GET /health}, \code{/model-info}
-      \item Bad input $\to$ HTTP 422; unknown county $\to$ 404
+      \item Bad input $\to$ Hypertext transfer protocol status 422; unknown county $\to$ 404
     \end{itemize}
     \column{0.50\textwidth}
     \textbf{What I verified}
     \begin{itemize}\setlength{\itemsep}{2pt}\small
       \item 57 pytest tests pass
       \item Slim image builds (gate runs inside the build)
-      \item Container \emph{healthy}, non-root; 200 and 422 over HTTP
+      \item Container \emph{healthy}, non-root; 200 and 422 over hypertext transfer protocol status
     \end{itemize}
   \end{columns}
   \vspace{6pt}
   \begin{alertblock}{Reproducibility caveat}
-    \small XGBoost is not bit-identical across Windows and Linux: ensemble PR-AUC 0.609 vs 0.608, but tuned threshold 0.16 vs 0.18.
+    \small XGBoost is not bit-identical across Windows and Linux: ensemble precision-recall area under the curve 0.609 versus 0.608, but tuned threshold 0.16 versus 0.18.
   \end{alertblock}
 \end{frame}
 
-% ---------------------------------------------------------------- 15b frontend
-\begin{frame}{An analyst view, served by the same API}
+% 15b frontend
+\begin{frame}{An analyst view, served by the same application programming interface}
   \centering
   \includegraphics[width=0.70\linewidth]{figures/ui_screenshot.png}
   \par\vspace{2pt}
   {\small Threshold raised to 0.50 here: 8 of 47 counties alert. At the tuned 0.18 nearly every county alerts, and the page warns the analyst.\par}
 \end{frame}
 
-% ---------------------------------------------------------------- 16 gap
+% 16 gap
 \begin{frame}{Where the delivery departs from the proposal}
   \footnotesize
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.3cm}>{\raggedright\arraybackslash}p{7.9cm}@{}}
     \toprule \textbf{Proposal} & \textbf{Delivered} \\ \midrule
-    ACLED events and KNBS indicators & Synthetic county-month data; real data is the next stage \\
+    Armed Conflict Location and Event Data Project events and Kenya National Bureau of Statistics indicators & Synthetic county-month data; real data is the next stage \\
     Spatial spill-over from neighbours & Same-region share as a proxy \\
     Data-quality problems to be handled & Not present: synthetic data are complete \\
     Escalation is rare (class imbalance) & Common: 28\% overall, 43\% in test \\
     Stacking expected to outperform & Not shown; ties a random forest \\
-    Dashboard integration & API with analyst context; no dashboard \\
+    Dashboard integration & Application programming interface with analyst context; no dashboard \\
     \bottomrule
   \end{tabular}
 \end{frame}
 
-% ---------------------------------------------------------------- 17 limits / next
+% 17 limits / next
 \begin{frame}{Limitations, and what comes next}
   \begin{columns}[T]
     \column{0.48\textwidth}
@@ -391,22 +397,35 @@
       \item Synthetic data: no real-world claims
       \item Tuned settings not adopted (modest, uneven gain)
       \item Only five rolling windows
-      \item CI/CD ran once; workflow not linted
+      \item Continuous integration and continuous delivery ran once; workflow not linted
       \item 5:1 cost ratio and 0.05 gate margin assumed
       \item No causal claim
     \end{itemize}
     \column{0.48\textwidth}
     \textbf{Next}
     \begin{itemize}\setlength{\itemsep}{3pt}\small
-      \item Real ACLED and KNBS data, with an explicit escalation definition
-      \item Adopt or reject the tuned settings; a GRU baseline
-      \item Per-prediction SHAP in the UI; lint the workflow
+      \item Real Armed Conflict Location and Event Data Project and Kenya National Bureau of Statistics data, with an explicit escalation definition
+      \item Adopt or reject the tuned settings; a gated recurrent unit baseline
+      \item Per-prediction Shapley additive explanations in the user interface; lint the workflow
       \item Threshold set with practitioners
     \end{itemize}
   \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------- 18 end
+% glossary
+\begin{frame}{Short forms and names explained}
+  \begin{itemize}\setlength{\itemsep}{3pt}\small
+    \item \hl{Spatio-Temporal Bayesian-Markov Stacked Ensemble:} the method; code package \code{stbmse} (its initials, used only in file and command names).
+    \item \hl{DSA 8401:} course code, Applied Machine Learning, Strathmore University.
+    \item \hl{False negative, false positive:} a missed escalation, a false alarm (always in this order).
+    \item \hl{XGBoost:} gradient-boosted decision trees. \hl{MLflow:} experiment tracking and model registry. \hl{Optuna:} hyperparameter search.
+    \item \hl{Evidently:} drift reports. \hl{FastAPI:} web framework for the service. \hl{Docker:} container packaging.
+    \item \hl{Shapley additive explanations:} split of a prediction into per-feature contributions.
+    \item \hl{Persistence baseline:} next month equals this month.
+  \end{itemize}
+\end{frame}
+
+% 18 end
 \begin{frame}[plain]
   \vfill
   \centering

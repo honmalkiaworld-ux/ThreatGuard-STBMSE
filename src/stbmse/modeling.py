@@ -89,7 +89,7 @@ class StackedEnsemble:
         return {n: float(w) for n, w in zip(self.learners, self.meta.coef_[0])}
 
 
-# ---------------------------------------------------------------------------------- evaluation
+# evaluation
 def evaluate(name, y, p, threshold, fn_cost: float = C.FN_COST, fp_cost: float = C.FP_COST) -> dict:
     y, p = np.asarray(y), np.asarray(p, dtype=float)
     pred = (p >= threshold).astype(int)

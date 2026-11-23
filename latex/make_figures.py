@@ -50,10 +50,10 @@ def build(K: float, tag: str, sizes: dict):
         plt.close(fig)
         print("wrote", f"{name}{tag}.pdf")
 
-    # -------------------------------------------------------------- 1. PR-AUC with confidence intervals
+    # 1. Precision-recall area under the curve with confidence intervals
     order = ["persistence", "logistic_regression", "xgboost", "random_forest", "st_bmse_ensemble"]
     labels = {"persistence": "Persistence baseline", "logistic_regression": "Logistic regression", "xgboost": "XGBoost",
-              "random_forest": "Random forest", "st_bmse_ensemble": "ST-BMSE ensemble"}
+              "random_forest": "Random forest", "st_bmse_ensemble": "Spatio-Temporal Bayesian-Markov\nStacked Ensemble"}
     fig, ax = plt.subplots(figsize=sizes["results"])
     for i, m in enumerate(order):
         r = res.loc[m]
@@ -70,13 +70,13 @@ def build(K: float, tag: str, sizes: dict):
     ax.set_yticklabels([labels[m] for m in reversed(order)])
     ax.set_xlim(0.38, 0.81)
     ax.set_ylim(-0.7, len(order) - 0.3)
-    ax.set_xlabel("PR-AUC, 2022–2024 test period (line = 95% county-block bootstrap CI)")
+    ax.set_xlabel("Precision-recall area under the curve, 2022–2024 test period (line = 95% county-block bootstrap confidence interval)")
     ax.grid(axis="y", visible=False)
     ax.set_xticks([0.4, 0.5, 0.6, 0.7, 0.8])
     fig.subplots_adjust(right=0.64)
     save(fig, "fig_results")
 
-    # -------------------------------------------------------------- 2. leakage audit
+    # 2. leakage audit
     short = ["Nowcast: this month's indicators\n→ this month's label", "Forecast: this month's indicators only",
              "Forecast: full ensemble", "Forecast: ensemble without Sentiments", "Forecast: escalation history only"]
     fig, ax = plt.subplots(figsize=sizes["leakage"])
@@ -90,14 +90,14 @@ def build(K: float, tag: str, sizes: dict):
     ax.set_yticklabels(list(reversed(short)))
     ax.set_xlim(0, 1.07)
     ax.set_ylim(-1.1, len(short) - 0.4)
-    ax.set_xlabel("PR-AUC on the 2022–2024 test period")
+    ax.set_xlabel("Precision-recall area under the curve on the 2022–2024 test period")
     ax.grid(axis="y", visible=False)
     ax.legend(handles=[Patch(color=ORANGE, label="Same-month label (not a forecast)"),
                        Patch(color=BLUE, label="Honest next-month forecast")],
               frameon=False, loc="lower center", bbox_to_anchor=(0.4, 1.0), ncol=2, fontsize=9 * K)
     save(fig, "fig_leakage")
 
-    # -------------------------------------------------------------- 3. calibration (reliability) diagram
+    # 3. calibration (reliability) diagram
     fig, ax = plt.subplots(figsize=sizes["calibration"])
     ax.plot([0, 1], [0, 1], color=GREY, lw=1.2, ls=(0, (4, 3)), zorder=1)
     ax.text(0.70, 0.55, "perfect calibration", color=INK2, fontsize=8.5 * K, rotation=40, ha="center", va="center")
@@ -113,11 +113,11 @@ def build(K: float, tag: str, sizes: dict):
     ax.set_aspect("equal")
     ax.set_xlabel("Mean predicted probability (bin)")
     ax.set_ylabel("Observed escalation rate (bin)")
-    ax.text(0.03, 0.95, f"ECE = {metrics['ece_test']:.3f}\nfilled = 30+ rows; hollow = fewer", fontsize=8.5 * K,
+    ax.text(0.03, 0.95, f"Expected calibration error = {metrics['ece_test']:.3f}\nfilled = 30+ rows; hollow = fewer", fontsize=8.5 * K,
             color=INK2, va="top")
     save(fig, "fig_calibration")
 
-    # -------------------------------------------------------------- 4. drift: escalation rate by year
+    # 4. drift: escalation rate by year
     fig, ax = plt.subplots(figsize=sizes["drift"])
     cols = [ORANGE if y >= 2022 else BLUE for y in yr.index]
     ax.bar(yr.index.astype(str), yr.values * 100, color=cols, width=0.7, zorder=2)
@@ -132,7 +132,7 @@ def build(K: float, tag: str, sizes: dict):
               frameon=False, loc="upper left", fontsize=9 * K)
     save(fig, "fig_drift")
 
-    # -------------------------------------------------------------- 5. per-region recall and false-alarm rate
+    # 5. per-region recall and false-alarm rate
     fig, ax = plt.subplots(figsize=sizes["region"])
     ys = np.arange(len(rg))
     for y, (_, r) in zip(ys, rg.iterrows()):
@@ -152,7 +152,7 @@ def build(K: float, tag: str, sizes: dict):
     ax.legend(frameon=False, loc="lower center", fontsize=9 * K, bbox_to_anchor=(0.45, 1.0), ncol=1)
     save(fig, "fig_region")
 
-    # -------------------------------------------------------------- 6. rolling-origin: ensemble vs persistence per test year
+    # 6. rolling-origin: ensemble vs persistence per test year
     if roll is not None:
         fig, ax = plt.subplots(figsize=sizes["rolling"])
         xs = np.arange(len(roll))
@@ -162,19 +162,19 @@ def build(K: float, tag: str, sizes: dict):
                     fontsize=9 * K, color=INK)
         ax.scatter(xs, roll.base_rate, marker="_", s=260 * K, color=GREY, lw=2, zorder=2, label="No-skill (that year's base rate)")
         ax.scatter(xs, roll.persistence_pr_auc, s=75 * K, color=ORANGE, ec="white", lw=1.4, zorder=3, label="Persistence baseline")
-        ax.scatter(xs, roll.pr_auc, s=75 * K, color=BLUE, ec="white", lw=1.4, zorder=3, label="ST-BMSE ensemble")
+        ax.scatter(xs, roll.pr_auc, s=75 * K, color=BLUE, ec="white", lw=1.4, zorder=3, label="Spatio-Temporal Bayesian-Markov Stacked Ensemble")
         ax.set_xticks(xs)
         ax.set_xticklabels([str(int(y)) for y in roll.test_year])
         ax.set_xlim(-0.5, len(roll) - 0.3)
         ax.set_ylim(0.15, 0.78)
         ax.set_xlabel("Test year (each window refits everything on earlier years only)")
-        ax.set_ylabel("PR-AUC")
+        ax.set_ylabel("Precision-recall area under the curve")
         ax.grid(axis="x", visible=False)
         ax.legend(frameon=False, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=3, fontsize=8.5 * K, handletextpad=0.3,
                   columnspacing=1.2)
         save(fig, "fig_rolling")
 
-    # -------------------------------------------------------------- 7. SHAP importance (stacker-weighted share)
+    # 7. Shapley importance (stacker-weighted share)
     if shap_tab is not None:
         top = shap_tab.head(12).iloc[::-1]
         fig, ax = plt.subplots(figsize=sizes["shap"])
@@ -183,7 +183,7 @@ def build(K: float, tag: str, sizes: dict):
             ax.text(v + 0.15, i, f"{v:.1f}%", va="center", fontsize=9 * K, color=INK)
         ax.set_yticks(range(len(top)))
         ax.set_yticklabels(top.feature)
-        ax.set_xlabel("Share of total attribution (mean |SHAP|, averaged over the three models by stacker weight)")
+        ax.set_xlabel("Share of total attribution (mean absolute Shapley value, averaged over the three models by stacker weight)")
         ax.set_xlim(0, top.weighted_share.max() * 100 * 1.18)
         ax.grid(axis="y", visible=False)
         save(fig, "fig_shap")

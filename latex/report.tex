@@ -44,7 +44,7 @@
 \renewcommand{\headrulewidth}{0.3pt}
 \setlength{\headheight}{26pt}
 \fancyhead[L]{\raisebox{-0.28\height}{\includegraphics[height=0.85cm]{figures/strathmore_logo_wide.png}}\hspace{0.9em}\small DSA 8401 -- Applied Machine Learning}
-\fancyhead[R]{\small ST-BMSE capstone report}
+\fancyhead[R]{\small Capstone report}
 \fancyfoot[C]{\small\thepage}
 
 \lstset{basicstyle=\ttfamily\small,backgroundcolor=\color{black!4},frame=none,breaklines=true,
@@ -55,11 +55,11 @@
 
 \begin{document}
 
-% ------------------------------------------------------------------ title
+% title
 \begin{center}
   \includegraphics[height=3.2cm]{figures/strathmore_logo.png}\par
   \vspace{10pt}
-  {\Huge\bfseries\color{navy} ST-BMSE\par}
+  {\Huge\bfseries\color{navy} Spatio-Temporal Bayesian-Markov Stacked Ensemble\par}
   \vspace{4pt}
   {\LARGE\bfseries\color{navy} Forecasting County-Level Conflict\\ Escalation in Kenya\par}
   \vspace{10pt}
@@ -75,14 +75,14 @@
 This report describes a reproducible machine-learning pipeline and model service that forecasts, for each of Kenya's 47
 counties, the probability of conflict escalation \emph{next month}. A stacked ensemble of logistic regression, random
 forest and XGBoost with empirical-Bayes Markov features, a calibrated meta-learner and a cost-sensitive alert threshold is
-evaluated on an untouched 2022--2024 test period. It beats a persistence baseline (PR-AUC 0.61 vs.\ 0.50; paired
-difference $+0.11$, 95\% CI $0.06$--$0.16$), but it does \emph{not} beat a single random forest, and the tuned alert
-threshold flags almost every county. A leakage audit shows that same-month features give PR-AUC 0.97, which is a
+evaluated on an untouched 2022--2024 test period. It beats a persistence baseline (precision-recall area under the curve 0.61 vs.\ 0.50; paired
+difference $+0.11$, 95\% confidence interval $0.06$--$0.16$), but it does \emph{not} beat a single random forest, and the tuned alert
+threshold flags almost every county. A leakage audit shows that same-month features give precision-recall area under the curve 0.97, which is a
 nowcast rather than a forecast. The data are synthetic, built to the proposal's county-month design, so the results
-demonstrate the method and should not be read as evidence about real conflict in Kenya; real ACLED and KNBS data are the planned next stage.
+demonstrate the method and should not be read as evidence about real conflict in Kenya; real Armed Conflict Location and Event Data Project and Kenya National Bureau of Statistics data are the planned next stage.
 \end{abstract}
 
-% ------------------------------------------------------------------ 1
+% 1
 \section{Problem framing}
 \textbf{Task.} For each county, estimate the probability that it \emph{escalates in the next month}, using only
 information known at the end of the current month. The output is a calibrated probability and an alert flag.
@@ -93,21 +93,36 @@ decision support for a human reviewer, not an automated decision-maker.
 
 \textbf{Unequal error costs.} A missed escalation can cost lives; a false alarm costs analyst time. The alert threshold
 therefore minimises expected cost,
+{\small\begin{align}
+  \tau^\star&=\arg\min_{\tau}\Big[\,\nonumber\\
+  &\quad\text{cost of a false negative}\times\text{false negatives}(\tau)\nonumber\\
+  &\quad+\,\text{cost of a false positive}\times\text{false positives}(\tau)\,\Big]\nonumber
+\end{align}}
 \begin{equation}
-  \tau^\star=\arg\min_{\tau}\;\big[\,C_{FN}\,FN(\tau)+C_{FP}\,FP(\tau)\,\big],\qquad C_{FN}:C_{FP}=5:1,
+  \text{cost of a false negative}:\text{cost of a false positive}=5:1
 \end{equation}
-chosen on validation data. The 5:1 ratio is an \emph{assumption} of this project, not an elicited value.
+chosen on validation data. In words:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item $\tau$ is the alert threshold: a county-month raises an alert when its predicted probability is at least $\tau$.
+  \item $\tau^\star$ is the chosen threshold, the value of $\tau$ with the smallest total expected cost ($\arg\min$ means ``the argument that minimises'').
+  \item $\text{false negatives}(\tau)$ is the number of false negatives at threshold $\tau$: real escalations that raised no alert (missed escalations).
+  \item $\text{cost of a false negative}$ is the cost assigned to one false negative.
+  \item $\text{false positives}(\tau)$ is the number of false positives at threshold $\tau$: alerts raised where no escalation followed (false alarms).
+  \item $\text{cost of a false positive}$ is the cost assigned to one false positive.
+  \item $\text{cost of a false negative}:\text{cost of a false positive}=5:1$ means one missed escalation is treated as five times as costly as one false alarm.
+\end{itemize}
+The 5:1 ratio is an \emph{assumption} of this project, not an elicited value.
 
-% ------------------------------------------------------------------ 2
+% 2
 \section{Data and the complications built into the evaluation}
 \textbf{Data.} \code{kenya\_conflict\_monthly.csv} has 5{,}640 rows (47 counties $\times$ 120 months, January 2015 to
 December 2024), 13 columns, no missing values and no duplicate keys. The label \code{Conflict\_Escalation} is binary, with an
 overall rate of 27.7\%.
 
-\textbf{The data are synthetic.} They are simulated county-month records, not observed ACLED events~\cite{raleigh2010} or KNBS statistics.
+\textbf{The data are synthetic.} They are simulated county-month records, not observed Armed Conflict Location and Event Data Project events~\cite{raleigh2010} or Kenya National Bureau of Statistics statistics.
 They follow the proposal's design: 47 counties, monthly, January 2015 to December 2024, with 2022--2024 held out as the test period.
 They carry the indicators the proposal's approach needs (conflict type, social unrest, economic volatility, diplomatic tension, security response time and sentiment)
-plus a binary next-step escalation label. The proposal's plan to use ACLED events and KNBS indicators is the \emph{next stage}: the pipeline validates and consumes a fixed
+plus a binary next-step escalation label. The proposal's plan to use Armed Conflict Location and Event Data Project events and Kenya National Bureau of Statistics indicators is the \emph{next stage}: the pipeline validates and consumes a fixed
 county-month schema, so real data aggregated to that schema can replace the synthetic file.
 
 Because the data are synthetic, the results show how the method behaves on data with this structure. They are not evidence about real conflict in Kenya,
@@ -130,7 +145,7 @@ so class imbalance is a minor issue on this file.
   \label{fig:drift}
 \end{figure}
 
-% ------------------------------------------------------------------ 3
+% 3
 \section{Pipeline}
 The pipeline is scripted end to end (\code{python run\_pipeline.py}) and is not notebook-based.
 
@@ -140,7 +155,7 @@ The pipeline is scripted end to end (\code{python run\_pipeline.py}) and is not 
   box/.style={draw=navy,fill=navy!6,rounded corners=2pt,minimum height=10mm,text width=2.55cm,align=center,font=\footnotesize},
   arr/.style={-{Stealth[length=2.2mm]},thick,navy},
   node distance=6mm and 7mm]
-  \node[box] (a) {Raw CSV\\47 counties $\times$ 120 months};
+  \node[box] (a) {Raw comma-separated values\\47 counties $\times$ 120 months};
   \node[box,right=of a] (b) {Validate\\schema and integrity};
   \node[box,right=of b] (c) {Causal features\\43, known at $t$};
   \node[box,right=of c] (d) {Temporal split\\train / val / test};
@@ -164,7 +179,7 @@ The pipeline is scripted end to end (\code{python run\_pipeline.py}) and is not 
   \item \textbf{Leakage guard.} \code{tests/test\_features.py} corrupts every observation after a cut-off month and asserts that no feature at or before the cut-off changes (cf.\ \cite{kaufman2012}). The test was shown to be sensitive by planting two deliberately leaky features; it flagged both and left the real features alone.
 \end{itemize}
 
-% ------------------------------------------------------------------ 4
+% 4
 \section{Technique choices, and what was left out}
 \subsection*{Used, and why}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.7cm}>{\raggedright\arraybackslash}p{11.9cm}@{}}
@@ -179,13 +194,13 @@ Calibrated logistic stacker~\cite{wolpert1992,platt1999} & Combines the three le
 Cost-sensitive threshold & The decision rule reflects unequal error costs. \\
 County-block bootstrap & Rows within a county are autocorrelated, so whole counties are resampled to avoid over-confident intervals. \\
 Permutation importance & Model-agnostic importance computed on the validation set, so the test set stays untouched. \\
-SHAP (exact per learner) & Course-standard attribution: exact linear SHAP for logistic regression and TreeSHAP for the forest and XGBoost, checked for additivity and combined with the stacker's weights (Section~\ref{sec:shap}). \\
+Shapley additive explanations (exact per learner) & Course-standard attribution: exact linear Shapley additive explanations for logistic regression and tree Shapley additive explanations for the forest and XGBoost, checked for additivity and combined with the stacker's weights (Section~\ref{sec:shap}). \\
 Rolling-origin evaluation & Repeats the whole procedure with the cut moved forward one year at a time (five windows, 2020--2024), so the headline claim does not rest on one lucky or unlucky split (Section~\ref{sec:rolling}). \\
 Optuna tuning study & Searches each learner's hyper-parameters with time-ordered folds that never touch the test period, and compares the result with the fixed settings like for like (Section~\ref{sec:tune}). \\
-PSI drift check & Quantifies the shift between periods. \\
+Population stability index drift check & Quantifies the shift between periods. \\
 MLflow tracking and registry & Records every run's parameters, validation and test metrics, tables and model, with the three base learners as nested runs for side-by-side comparison. A passing model is registered as \code{stbmse-ensemble} with alias \code{production}. \\
-Quality gate (validation only) & The best base learner must beat persistence by at least 0.05 PR-AUC on validation, scores must be finite and the alert threshold non-degenerate. A failed gate exits non-zero, writes no model and registers nothing. It uses validation data only, so the test period stays untouched by any decision. \\
-GitHub Actions CI/CD & CI on every push: train with the gate, audits, drift report, tests, Docker build, then run the container and call it. CD (push to the container registry) only from the default branch and only if CI passed. \\
+Quality gate (validation only) & The best base learner must beat persistence by at least 0.05 precision-recall area under the curve on validation, scores must be finite and the alert threshold non-degenerate. A failed gate exits non-zero, writes no model and registers nothing. It uses validation data only, so the test period stays untouched by any decision. \\
+GitHub Actions continuous integration and continuous delivery & Continuous integration on every push: train with the gate, audits, drift report, tests, Docker build, then run the container and call it. CD (push to the container registry) only from the default branch and only if continuous integration passed. \\
 Evidently AI drift report & Course-standard drift detection on inputs, predictions and target between the training and test periods (Section~\ref{sec:drift}). \\
 \bottomrule
 \end{longtable}
@@ -196,33 +211,33 @@ Evidently AI drift report & Course-standard drift detection on inputs, predictio
 \textbf{Technique} & \textbf{Reason} \\
 \midrule
 \endhead
-LSTM / GRU / Transformer & 47 series of 120 points (about 5{,}600 rows) is too little data for sequence models to beat engineered lags and boosted trees, and interpretability would suffer. This is an argued position, not a tested one. \\
-SVM & Needs scaling and a separate probability-calibration step, with no expected gain over the three learners already used. \\
+Long short-term memory / gated recurrent unit / Transformer & 47 series of 120 points (about 5{,}600 rows) is too little data for sequence models to beat engineered lags and boosted trees, and interpretability would suffer. This is an argued position, not a tested one. \\
+Support vector machine & Needs scaling and a separate probability-calibration step, with no expected gain over the three learners already used. \\
 LightGBM & Redundant with XGBoost on a dataset this small. \\
-K-Means, DBSCAN, PCA, t-SNE & The task is supervised and a label exists. Clustering counties could describe regions but would not improve a one-month-ahead forecast. \\
-LLM fine-tuning, RAG, agents & There is no text in the file; adding an LLM would be a gimmick. \\
+K-Means, DBSCAN, principal component analysis, t-distributed stochastic neighbour embedding & The task is supervised and a label exists. Clustering counties could describe regions but would not improve a one-month-ahead forecast. \\
+Large language model fine-tuning, retrieval-augmented generation, agents & There is no text in the file; adding an large language model would be a gimmick. \\
 \bottomrule
 \end{longtable}
 
-% ------------------------------------------------------------------ 5
+% 5
 \section{Results}\label{sec:results}
 All figures are for the 2022--2024 test period ($n=1{,}692$ county-months) with 95\% county-block bootstrap confidence
-intervals (500 resamples). PR-AUC is emphasised because it is more informative than ROC-AUC when positives are a minority~\cite{saito2015}; here the no-skill PR-AUC equals the test base rate, 0.43.
+intervals (500 resamples). Precision-recall area under the curve is emphasised because it is more informative than receiver operating characteristic area under the curve when positives are a minority~\cite{saito2015}; here the no-skill precision-recall area under the curve equals the test base rate, 0.43.
 
 \begin{table}[!htbp]
 \centering\footnotesize
 \setlength{\tabcolsep}{4.5pt}
 \caption{Test-period performance. Recall and false-alarm rate use each model's own validation-tuned threshold.}
 \label{tab:results}
-\begin{tabular}{@{}lcccrr@{}}
+\begin{tabular}{@{}p{3.1cm}p{2.9cm}p{3.3cm}rrr@{}}
 \toprule
-\textbf{Model} & \textbf{PR-AUC (95\% CI)} & \textbf{ROC-AUC (95\% CI)} & \textbf{Recall} & \textbf{False-alarm} & \textbf{Brier} \\
+\textbf{Model} & \textbf{Precision-recall area under the curve (95\% confidence interval)} & \textbf{Receiver operating characteristic area under the curve (95\% confidence interval)} & \textbf{Recall} & \textbf{False-alarm} & \textbf{Brier} \\
 \midrule
 Persistence baseline & 0.498 (0.433--0.559) & 0.609 (0.571--0.644) & 0.55 & 0.34 & 0.383 \\
 Logistic regression & 0.594 (0.507--0.679) & 0.672 (0.623--0.715) & 0.97 & 0.89 & 0.227 \\
 Random forest & \textbf{0.619} (0.533--0.692) & \textbf{0.700} (0.644--0.743) & 0.93 & 0.75 & 0.221 \\
 XGBoost & 0.587 (0.512--0.660) & 0.678 (0.623--0.719) & 0.89 & 0.72 & 0.231 \\
-\textbf{ST-BMSE ensemble} & 0.608 (0.520--0.689) & 0.691 (0.639--0.734) & 0.94 & 0.81 & 0.221 \\
+\textbf{Spatio-Temporal Bayesian-Markov Stacked Ensemble} & 0.608 (0.520--0.689) & 0.691 (0.639--0.734) & 0.94 & 0.81 & 0.221 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -230,16 +245,16 @@ XGBoost & 0.587 (0.512--0.660) & 0.678 (0.623--0.719) & 0.89 & 0.72 & 0.231 \\
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.97\linewidth]{figures/fig_results.pdf}
-  \caption{PR-AUC on the test period with 95\% county-block bootstrap intervals. Only the ensemble's gain over persistence is clearly outside noise.}
+  \caption{precision-recall area under the curve on the test period with 95\% county-block bootstrap intervals. Only the ensemble's gain over persistence is clearly outside noise.}
   \label{fig:results}
 \end{figure}
 
 \begin{table}[!htbp]
 \centering\small
-\caption{Paired differences in PR-AUC, on the same resampled counties.}
+\caption{Paired differences in precision-recall area under the curve, on the same resampled counties.}
 \begin{tabularx}{\linewidth}{@{}lccX@{}}
 \toprule
-\textbf{Comparison} & \textbf{Difference} & \textbf{95\% CI} & \textbf{Reading} \\
+\textbf{Comparison} & \textbf{Difference} & \textbf{95\% confidence interval} & \textbf{Reading} \\
 \midrule
 Ensemble $-$ persistence & $+0.109$ & $0.062$ to $0.161$ & Real improvement \\
 Ensemble $-$ random forest & $-0.011$ & $-0.031$ to $+0.016$ & No evidence the ensemble beats a single random forest \\
@@ -253,10 +268,10 @@ Ensemble $-$ logistic regression & $+0.013$ & $0.002$ to $0.026$ & Small gain, b
 \begin{itemize}
   \item The model forecasts better than persistence, and the gap lies outside bootstrap noise. That is the baseline the proposal names.
   \item Stacking did not help over the best single learner. The proposal's central claim, that the ensemble is better because it combines complementary learners, is \textbf{not supported} on this data.
-  \item ROC-AUC of about 0.69 means moderate discrimination, not strong. The forecasting signal is modest.
+  \item Receiver operating characteristic area under the curve of about 0.69 means moderate discrimination, not strong. The forecasting signal is modest.
   \item Calibration is acceptable (expected calibration error 0.049; Figure~\ref{fig:cal}). Probabilities are slightly too low in the lower bins because the test base rate exceeds the training one.
-  \item \textbf{The tuned alert is operationally poor.} The threshold (0.18) was chosen on 2020--2021, when 24\% of months escalated. In the 43\% test regime it flags most counties: recall 0.94 but a false-alarm rate of 0.81. For December 2024, \textbf{46 of 47 counties alert} at 0.18 and 8 of 47 at 0.50. The API therefore exposes a \code{threshold} override; the right value should be set with practitioners, not by an assumed cost ratio.
-  \item Most important inputs on the validation period (permutation importance): the 3-month mean social-unrest score, the 6- and 12-month escalation shares, cumulative county history, the Markov ``enter escalation'' probability and the North Eastern region indicator. SHAP (Section~\ref{sec:shap}) agrees on the top feature and only moderately on the rest.
+  \item \textbf{The tuned alert is operationally poor.} The threshold (0.18) was chosen on 2020--2021, when 24\% of months escalated. In the 43\% test regime it flags most counties: recall 0.94 but a false-alarm rate of 0.81. For December 2024, \textbf{46 of 47 counties alert} at 0.18 and 8 of 47 at 0.50. The application programming interface therefore exposes a \code{threshold} override; the right value should be set with practitioners, not by an assumed cost ratio.
+  \item Most important inputs on the validation period (permutation importance): the 3-month mean social-unrest score, the 6- and 12-month escalation shares, cumulative county history, the Markov ``enter escalation'' probability and the North Eastern region indicator. Shapley additive explanations (Section~\ref{sec:shap}) agrees on the top feature and only moderately on the rest.
 \end{itemize}
 
 \subsection{Rolling-origin evaluation}\label{sec:rolling}
@@ -267,10 +282,10 @@ The 2022 window is exactly the shipped split, scored on 2022 only.
 \begin{table}[!htbp]
 \centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Rolling-origin results. Gain is the plain difference between the two PR-AUC columns, with a 95\% county-block bootstrap percentile interval around it.}
+\caption{Rolling-origin results. Gain is the plain difference between the two precision-recall area under the curve columns, with a 95\% county-block bootstrap percentile interval around it.}
 \begin{tabular}{@{}cccccrr@{}}
 \toprule
-\textbf{Test year} & \textbf{Base rate} & \textbf{Ensemble} & \textbf{Persistence} & \textbf{Gain (95\% CI)} & \textbf{Recall} & \textbf{False-alarm} \\
+\textbf{Test year} & \textbf{Base rate} & \textbf{Ensemble} & \textbf{Persistence} & \textbf{Gain (95\% confidence interval)} & \textbf{Recall} & \textbf{False-alarm} \\
 \midrule
 2020 & 0.238 & 0.448 & 0.286 & $+0.161$ (0.070 to 0.243) & 0.92 & 0.77 \\
 2021 & 0.236 & 0.462 & 0.281 & $+0.180$ (0.076 to 0.261) & 0.89 & 0.67 \\
@@ -284,24 +299,24 @@ The 2022 window is exactly the shipped split, scored on 2022 only.
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.92\linewidth]{figures/fig_rolling.pdf}
-  \caption{PR-AUC by test year. The ensemble beats persistence in every window; the numbers are the gains.}
+  \caption{precision-recall area under the curve by test year. The ensemble beats persistence in every window; the numbers are the gains.}
   \label{fig:rolling}
 \end{figure}
 
 \begin{itemize}
   \item \textbf{The headline claim holds in every window.} The ensemble beats persistence each year, the paired interval excludes zero all five times, and the mean gain is $+0.136$ (range $+0.075$ to $+0.180$). The earlier finding was not an accident of one split.
-  \item \textbf{PR-AUC rises over time mainly because the base rate rises} (0.24 to 0.47), and persistence rises with it, so the gain over persistence is the fair comparison, not the raw level.
+  \item \textbf{Precision-recall area under the curve rises over time mainly because the base rate rises} (0.24 to 0.47), and persistence rises with it, so the gain over persistence is the fair comparison, not the raw level.
   \item \textbf{The alert problem is not a one-year accident.} The false-alarm rate is 0.66 to 0.96 in every window; in 2024 the model flags every escalating month and almost every quiet one (recall 1.00, false-alarm rate 0.96).
   \item The ensemble is not compared with a single random forest here, so this does not revisit that finding.
 \end{itemize}
 
 \subsection{Hyperparameter tuning study}\label{sec:tune}
-The shipped settings were fixed by hand; this study asks whether a search improves on them. Each learner was tuned separately with Optuna (TPE sampler, fixed seed, 25 trials). The objective was the mean PR-AUC over four expanding-window folds
+The shipped settings were fixed by hand; this study asks whether a search improves on them. Each learner was tuned separately with Optuna (tree-structured Parzen estimator sampler, fixed seed, 25 trials). The objective was the mean precision-recall area under the curve over four expanding-window folds
 (forecast years 2018 to 2021, each fitted on earlier years only), so \textbf{the test period was never used for tuning}. The fixed settings were scored on the same folds. Only afterwards were the tuned and fixed ensembles evaluated once on 2022--2024.
 
 \begin{table}[!htbp]
 \centering\small
-\caption{Cross-validated PR-AUC (folds 2018--2021): fixed against tuned settings.}
+\caption{Cross-validated precision-recall area under the curve (folds 2018--2021): fixed against tuned settings.}
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Learner} & \textbf{Fixed} & \textbf{Tuned} & \textbf{Gain} \\
@@ -315,10 +330,10 @@ XGBoost & 0.406 & 0.426 & $+0.019$ \\
 
 \begin{table}[!htbp]
 \centering\small
-\caption{Test period 2022--2024, evaluated once. Paired difference in PR-AUC (tuned minus fixed): $+0.033$, 95\% CI 0.010 to 0.051.}
-\begin{tabular}{@{}lccccc@{}}
+\caption{Test period 2022--2024, evaluated once. Paired difference in precision-recall area under the curve (tuned minus fixed): $+0.033$, 95\% confidence interval 0.010 to 0.051.}
+\begin{tabular}{@{}lp{3.3cm}p{3.3cm}rrr@{}}
 \toprule
- & \textbf{PR-AUC (95\% CI)} & \textbf{ROC-AUC} & \textbf{Recall} & \textbf{False-alarm} & \textbf{Threshold} \\
+ & \textbf{Precision-recall area under the curve (95\% confidence interval)} & \textbf{Receiver operating characteristic area under the curve} & \textbf{Recall} & \textbf{False-alarm} & \textbf{Threshold} \\
 \midrule
 Fixed (shipped) & 0.608 (0.520--0.689) & 0.691 & 0.94 & 0.81 & 0.18 \\
 Tuned & 0.641 (0.544--0.717) & 0.710 & 0.97 & 0.86 & 0.15 \\
@@ -340,7 +355,7 @@ Tuned & 0.641 (0.544--0.717) & 0.710 & 0.97 & 0.86 & 0.15 \\
   \label{fig:cal}
 \end{figure}
 
-% ------------------------------------------------------------------ 6
+% 6
 \section{Audits}
 \subsection{Leakage audit}\label{sec:leak}
 Figure~\ref{fig:leak} compares a nowcast with honest forecasts. Same-month indicators almost determine the same-month
@@ -350,7 +365,7 @@ report a near-perfect model.
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.97\linewidth]{figures/fig_leakage.pdf}
-  \caption{PR-AUC for a same-month nowcast versus next-month forecasts. For the honest task, the indicator columns add nothing measurable beyond escalation history.}
+  \caption{precision-recall area under the curve for a same-month nowcast versus next-month forecasts. For the honest task, the indicator columns add nothing measurable beyond escalation history.}
   \label{fig:leak}
 \end{figure}
 
@@ -367,13 +382,13 @@ The escalation rate rises from 20\% to 24\% to 43\% across the training, validat
   \item Largest input shifts: the national and regional spill-over shares (2.65 and 1.08), and the social-unrest score and its lags (1.2 to 1.7).
   \item \textbf{Stable:} \code{Region}, \code{Security\_Force\_Response\_Time} with its lag, and the calendar terms. The calendar terms act as a built-in sanity check: month of year should not drift, and it does not.
 \end{itemize}
-The hand-built \textbf{population stability index (PSI)} check found 18 continuous features above 0.25, the usual ``major shift'' line. PSI on rate-like and discrete features is inflated by
+The hand-built \textbf{population stability index} check found 18 continuous features above 0.25, the usual ``major shift'' line. Population stability index on rate-like and discrete features is inflated by
 coarse bins, so it is a direction rather than a magnitude. Evidently reports that the inputs moved, not that the model got worse; accuracy on the test period (Section~\ref{sec:results}) is the measure of that.
 Practical implication: the model must be retrained and the threshold re-tuned on recent data.
 
 \subsection{Per-region performance}
 At the tuned threshold the false-alarm burden is uneven (Figure~\ref{fig:region}). Northern and North Eastern regions have a false-alarm
-rate of 1.00 (every quiet month flagged), Coastal 0.94 and Nyanza 0.90, against 0.64--0.65 for Eastern and Western. PR-AUC ranges from 0.47 (Coastal) to 0.76 (Central).
+rate of 1.00 (every quiet month flagged), Coastal 0.94 and Nyanza 0.90, against 0.64--0.65 for Eastern and Western. Precision-recall area under the curve ranges from 0.47 (Coastal) to 0.76 (Central).
 Regions contain only 3 to 11 counties, so these differences are indicative, not conclusive. Equal thresholds do not give equal treatment.
 
 \begin{figure}[!htbp]
@@ -383,21 +398,21 @@ Regions contain only 3 to 11 counties, so these differences are indicative, not 
   \label{fig:region}
 \end{figure}
 
-\subsection{SHAP explanations}\label{sec:shap}
-The ensemble blends three learners through a logistic stacker, so there is no closed-form SHAP for the blend. Each learner is therefore explained exactly (exact linear SHAP for logistic regression, TreeSHAP for the forest and XGBoost)
-on the 1{,}128 validation rows, and the three are combined. Because the units differ, each model's mean $|\mathrm{SHAP}|$ is turned into a share of its own total and the shares are averaged with the stacker's absolute weights
-(logistic regression 49\%, forest 32\%, XGBoost 19\%). This approximates the blend's attribution and is not an exact SHAP of it. Every explainer was checked for additivity: the contributions plus the base value reproduce each model's own output to within $3\times10^{-6}$.
+\subsection{Shapley additive explanations}\label{sec:shap}
+The ensemble blends three learners through a logistic stacker, so there is no closed-form Shapley additive explanations for the blend. Each learner is therefore explained exactly (exact linear Shapley additive explanations for logistic regression, tree Shapley additive explanations for the forest and XGBoost)
+on the 1{,}128 validation rows, and the three are combined. Because the units differ, each model's mean absolute Shapley value is turned into a share of its own total and the shares are averaged with the stacker's absolute weights
+(logistic regression 49\%, forest 32\%, XGBoost 19\%). This approximates the blend's attribution and is not an exact Shapley additive explanations of it. Every explainer was checked for additivity: the contributions plus the base value reproduce each model's own output to within $3\times10^{-6}$.
 
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.97\linewidth]{figures/fig_shap.pdf}
-  \caption{The twelve features with the largest share of SHAP attribution on the validation period.}
+  \caption{The twelve features with the largest share of Shapley additive explanations attribution on the validation period.}
   \label{fig:shap}
 \end{figure}
 
 \begin{table}[!htbp]
 \centering\small
-\caption{SHAP attribution by group of features.}
+\caption{Shapley additive explanations attribution by group of features.}
 \begin{tabular}{@{}lr@{}}
 \toprule
 \textbf{Group of features} & \textbf{Share} \\
@@ -414,40 +429,40 @@ Calendar & 2.2\% \\
 
 \begin{itemize}
   \item \textbf{The models lean on different things.} Logistic regression relies on the unrest score and the rolling escalation shares; the forest and XGBoost rely mostly on the Markov transition features.
-  \item \textbf{SHAP and permutation importance agree on the top feature but only moderately overall} (Spearman rank correlation 0.49 against the full permutation run; 0.41 against the faster run with fewer repeats that CI uses). Correlated features share credit differently under the two methods, so neither ranking should be read as a precise ordering.
+  \item \textbf{Shapley additive explanations and permutation importance agree on the top feature but only moderately overall} (Spearman rank correlation 0.49 against the full permutation run; 0.41 against the faster run with fewer repeats that continuous integration uses). Correlated features share credit differently under the two methods, so neither ranking should be read as a precise ordering.
   \item \textbf{Attribution is not added predictive value.} The indicators carry 31\% of the attribution, yet the leakage audit (Section~\ref{sec:leak}) found the history-only ensemble forecasts as well as the full one. Both are true: the indicators correlate with past escalation, so the models use them, but they do not add accuracy beyond it.
-  SHAP describes how the fitted model computes its output, not what causes escalation.
+  Shapley additive explanations describes how the fitted model computes its output, not what causes escalation.
 \end{itemize}
 
-% ------------------------------------------------------------------ 7
+% 7
 \section{Gap between the proposal and what was delivered}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{5.6cm}>{\raggedright\arraybackslash}p{10.0cm}@{}}
 \toprule
 \textbf{Proposal} & \textbf{Delivered} \\
 \midrule
 \endhead
-ACLED events and KNBS indicators & Synthetic county-month data built to the proposal's design (no real event counts, fatalities or KNBS series); real ACLED and KNBS data is the planned next stage. \\
+Armed Conflict Location and Event Data Project events and Kenya National Bureau of Statistics indicators & Synthetic county-month data built to the proposal's design (no real event counts, fatalities or Kenya National Bureau of Statistics series); real Armed Conflict Location and Event Data Project and Kenya National Bureau of Statistics data is the planned next stage. \\
 Spatial spill-over from neighbouring counties & Same-region share as a proxy (no adjacency data). \\
 Data-quality challenges (missing events, reporting changes, geocoding errors) & Not present: synthetic data are complete by construction, so the validation stage is built and tested but real-world messiness is not exercised. \\
 Class imbalance because escalation is rare & Escalation is common here (28\% overall, 43\% in test). \\
 Stacked ensemble expected to outperform & Not shown; it ties a single random forest. \\
-Human-in-the-loop prototype in the ThreatGuard AI dashboard & A prediction API with context fields for an analyst; not integrated with the dashboard. \\
+Human-in-the-loop prototype in the ThreatGuard AI dashboard & A prediction application programming interface with context fields for an analyst; not integrated with the dashboard. \\
 \bottomrule
 \end{longtable}
 
 \medskip
-To use real data: obtain ACLED and KNBS, aggregate to county-month, define ``escalation'' explicitly (the proposal does not), and map the result to
+To use real data: obtain Armed Conflict Location and Event Data Project and Kenya National Bureau of Statistics, aggregate to county-month, define ``escalation'' explicitly (the proposal does not), and map the result to
 the schema in \code{config.REQUIRED\_COLUMNS} or extend \code{data.py}.
 
-% ------------------------------------------------------------------ 8
+% 8
 \section{Deployment and real-world relevance}
 A FastAPI service (\code{/predict}, \code{/predict/batch}, \code{/health}, \code{/model-info}) loads the serialised artifact. Features are rebuilt at
-serving time with the same code as training, so training and serving cannot diverge. The API returns the probability, the base-model probabilities and the context an
-analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (57 tests passing) and with live HTTP calls.
+serving time with the same code as training, so training and serving cannot diverge. The application programming interface returns the probability, the base-model probabilities and the context an
+analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (57 tests passing) and with live hypertext transfer protocol status calls.
 
-\textbf{Frontend.} The API serves a single-page analyst view at \code{/ui} (Figure~\ref{fig:ui}): all 47 counties ranked by predicted probability, an as-of month selector, an alert-threshold slider,
+\textbf{Frontend.} The application programming interface serves a single-page analyst view at \code{/ui} (Figure~\ref{fig:ui}): all 47 counties ranked by predicted probability, an as-of month selector, an alert-threshold slider,
 region and alerts-only filters, and a detail panel showing what each of the three models says plus context an analyst can check. When the threshold makes nearly every county alert (as the tuned 0.18 does)
-the page says so and advises raising it. It is a real client of the JSON endpoints, makes no external requests, inserts API values as text only, and these properties are covered by tests.
+the page says so and advises raising it. It is a real client of the JavaScript Object Notation endpoints, makes no external requests, inserts application programming interface values as text only, and these properties are covered by tests.
 It was checked in headless Edge at desktop and phone widths in light and dark mode, and served from the Docker container; it has not been tested in Firefox or Safari, or with a screen reader.
 
 \begin{figure}[!htbp]
@@ -459,37 +474,37 @@ It was checked in headless Edge at desktop and phone widths in light and dark mo
 
 \textbf{Experiment tracking and the quality gate.} Every training run is logged to MLflow: parameters, validation and test metrics, tables, the model, and one nested run per base learner. The gate runs on
 \emph{validation data only}. A failed gate exits with code 1, writes no model artifact and registers nothing; the failed run is still logged and tagged \code{quality\_gate=failed}. This was exercised in both directions.
-On the real data the gate passes (the best base learner beats persistence by $+0.179$ PR-AUC on validation, against a required $+0.05$). Demanding an impossible $+0.90$ stopped the pipeline with exit code 1,
+On the real data the gate passes (the best base learner beats persistence by $+0.179$ Precision-recall area under the curve on validation, against a required $+0.05$). Demanding an impossible $+0.90$ stopped the pipeline with exit code 1,
 left the model file untouched and left the registry holding only the passing version. The registered model loads back from \code{models:/stbmse-ensemble@production}.
 
-\textbf{CI/CD.} \code{.github/workflows/ci.yml} runs on every push and pull request: install, train with the gate, audits and Evidently report, pytest, Docker build, then run the container and call
-\code{/health}, \code{/predict} and an invalid request, which must return HTTP 422. Publishing to the GitHub Container Registry happens only on the default branch and only if CI passed.
+\textbf{Continuous integration and continuous delivery.} \code{.github/workflows/ci.yml} runs on every push and pull request: install, train with the gate, audits and Evidently report, pytest, Docker build, then run the container and call
+\code{/health}, \code{/predict} and an invalid request, which must return hypertext transfer protocol status 422. Publishing to the GitHub Container Registry happens only on the default branch and only if continuous integration passed.
 \textbf{The workflow ran green on GitHub on its first push} (run 44397520310): both the \code{ci} job and the \code{cd} job (build and push to the container registry) succeeded.
 Not verified: the published image could not be listed independently (the available token lacks the \code{read:packages} scope), the workflow file was not checked with a dedicated linter such as \code{actionlint}, and the gate's blocking behaviour was proven locally rather than on GitHub.
 
-\textbf{Container verification.} The Docker image was rebuilt from the slimmed serving requirements (no MLflow, Evidently or test tools in the image) and run exactly as the CI job does (Docker Desktop, Windows~11).
-The quality gate runs during \code{docker build}, so a failing gate would fail the build. The image is 1.3~GB; about 200~MB of that is a GPU-communication library that XGBoost's Linux wheel pulls in and this CPU-only service does not use.
+\textbf{Container verification.} The Docker image was rebuilt from the slimmed serving requirements (no MLflow, Evidently or test tools in the image) and run exactly as the continuous integration job does (Docker Desktop, Windows~11).
+The quality gate runs during \code{docker build}, so a failing gate would fail the build. The image is 1.3~gigabytes; about 200~megabytes of that is a graphics processing unit-communication library that XGBoost's Linux wheel pulls in and this central processing unit-only service does not use.
 The container passed its health check, runs as a non-root user and served
-correct predictions and validation errors over HTTP. The model trained inside the Linux image differs slightly from the Windows-trained one used for the tables above (XGBoost is not bit-identical across
-platforms): ensemble PR-AUC 0.609 vs.\ 0.608, but tuned threshold 0.16 vs.\ 0.18 and false-alarm rate 0.89 vs.\ 0.81. Rankings and conclusions are unchanged; alert-level figures are not exactly reproducible across operating systems.
+correct predictions and validation errors over hypertext transfer protocol status. The model trained inside the Linux image differs slightly from the Windows-trained one used for the tables above (XGBoost is not bit-identical across
+platforms): ensemble precision-recall area under the curve 0.609 vs.\ 0.608, but tuned threshold 0.16 vs.\ 0.18 and false-alarm rate 0.89 vs.\ 0.81. Rankings and conclusions are unchanged; alert-level figures are not exactly reproducible across operating systems.
 
-% ------------------------------------------------------------------ 9
+% 9
 \section{Limitations}
 \begin{itemize}
   \item The data are synthetic: results demonstrate the method and say nothing about real conflict in Kenya.
   \item Synthetic data are clean and complete by construction, so raw-data problems (missing or duplicated events, geocoding errors) are not exercised; the evaluation's realism comes from the temporal protocol and the data's own prior shift.
-  \item The shipped model uses hand-set hyper-parameters. A tuning study found a modest, uneven test-period gain ($+0.033$ PR-AUC) but the tuned settings were not adopted; the study used one search of 25 trials per learner.
+  \item The shipped model uses hand-set hyper-parameters. A tuning study found a modest, uneven test-period gain ($+0.033$ Precision-recall area under the curve) but the tuned settings were not adopted; the study used one search of 25 trials per learner.
   \item The rolling-origin evaluation has only five windows, and the 2022--2024 windows overlap the main test period.
-  \item SHAP for the blended model is an approximation (per-model shares averaged with the stacker's weights), and sequence models were argued out, not tested.
-  \item The CI/CD workflow ran once on GitHub; the published image was not independently inspected, the file was not linted, and the gate's blocking behaviour was proven locally, not on GitHub.
-  \item The quality-gate margin ($+0.05$ PR-AUC over persistence) is a judgement, not derived from a requirement.
+  \item Shapley additive explanations for the blended model is an approximation (per-model shares averaged with the stacker's weights), and sequence models were argued out, not tested.
+  \item The continuous integration and continuous delivery workflow ran once on GitHub; the published image was not independently inspected, the file was not linted, and the gate's blocking behaviour was proven locally, not on GitHub.
+  \item The quality-gate margin ($+0.05$ Precision-recall area under the curve over persistence) is a judgement, not derived from a requirement.
   \item The 5:1 cost ratio is assumed.
   \item The alert threshold does not transfer across regimes; recalibrate on recent data.
   \item Spill-over is a regional proxy, not geographic adjacency.
   \item No causal claim: importance scores show predictive association only.
 \end{itemize}
 
-% ------------------------------------------------------------------ 10
+% 10
 \section{Reproduce}
 \begin{lstlisting}
 python -m pip install -r requirements.txt
@@ -500,7 +515,24 @@ python latex/make_figures.py      # regenerates the figures in this report
 \end{lstlisting}
 The Evidently report is written to \code{reports/evidently\_drift\_report.html}; open it in a browser.
 
-% ------------------------------------------------------------------ refs
+% refs
+
+\section*{Short forms and names explained}
+\begin{description}\setlength{\itemsep}{2pt}
+  \item[Spatio-Temporal Bayesian-Markov Stacked Ensemble] The method of this project. Its code package is named \code{stbmse}, the initials of these words; it appears only in file, folder and command names.
+  \item[DSA 8401] The course code of Applied Machine Learning at Strathmore University (Master of Science in Data Science and Analytics).
+  \item[False negative, false positive] A missed escalation and a false alarm, in that order throughout.
+  \item[Threshold] The probability at or above which a county-month raises an alert.
+  \item[XGBoost] A gradient-boosted decision-tree library, one of the three base learners.
+  \item[MLflow] An open-source tool that records experiment runs and registers models.
+  \item[Optuna] An open-source library for hyperparameter search.
+  \item[Evidently] An open-source library that produces drift reports.
+  \item[FastAPI] A Python web framework used for the prediction service.
+  \item[Docker] Software that packages the service and its dependencies into a container image.
+  \item[Shapley additive explanations] A method that splits each prediction into the contribution of each input feature.
+  \item[Persistence baseline] The simple forecast that next month's escalation equals this month's.
+\end{description}
+
 \begin{thebibliography}{9}\small
 \bibitem{raleigh2010} C.~Raleigh, A.~Linke, H.~Hegre and J.~Karlsen. Introducing ACLED: An Armed Conflict Location and Event Dataset. \emph{Journal of Peace Research}, 47(5):651--660, 2010.
 \bibitem{kaufman2012} S.~Kaufman, S.~Rosset, C.~Perlich and O.~Stitelman. Leakage in data mining: Formulation, detection, and avoidance. \emph{ACM Transactions on Knowledge Discovery from Data}, 6(4), 2012.

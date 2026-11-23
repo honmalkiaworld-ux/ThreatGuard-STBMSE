@@ -71,10 +71,10 @@ def train(raw_path=C.RAW_CSV, fast: bool = False) -> dict:
     out["split"] = np.where(tr, "train", np.where(va, "validation", "test"))
     out.to_csv(C.PROCESSED_DIR / "modelling_table.csv", index=False)
 
-    # ------------------------------------------------------------------ 1. fit
+    # 1. fit
     ens = StackedEnsemble().fit(X[tr], y[tr], X[va], y[va])
 
-    # ------------------------------------------------------------------ 2. quality gate (validation only)
+    # 2. quality gate (validation only)
     yv = y[va].values
     pv_base = ens.base_proba(X[va])                     # base learners were fitted on TRAIN, so these are out-of-sample
     gate = check_quality_gate(yv, prep.persistence[va], pv_base, ens.threshold)
@@ -85,7 +85,7 @@ def train(raw_path=C.RAW_CSV, fast: bool = False) -> dict:
     val_results = pd.DataFrame(val_rows).set_index("model")
     val_results.round(4).to_csv(C.REPORT_DIR / "results_validation_base_learners.csv")
 
-    # ------------------------------------------------------------------ 3. test-period evaluation
+    # 3. test-period evaluation
     yt = y[te].values
     p_base = ens.base_proba(X[te])
     p_ens = ens.predict_proba(X[te])
@@ -132,7 +132,7 @@ def train(raw_path=C.RAW_CSV, fast: bool = False) -> dict:
         "data_quality": {k: quality[k] for k in ("rows", "counties", "period", "panel_cells_present", "warnings")},
     }
 
-    # ------------------------------------------------------------------ 4. experiment tracking (MLflow)
+    # 4. experiment tracking (MLflow)
     params = {
         "seed": C.SEED, "train_end_year": C.TRAIN_END_YEAR, "val_end_year": C.VAL_END_YEAR,
         "cost_fn": C.FN_COST, "cost_fp": C.FP_COST, "k_prior": C.K_PRIOR, "n_features": int(X.shape[1]),
@@ -148,7 +148,7 @@ def train(raw_path=C.RAW_CSV, fast: bool = False) -> dict:
     portable = _portable(metrics)
     C.METRICS_PATH.write_text(json.dumps(portable, indent=2), encoding="utf-8")
 
-    # ------------------------------------------------------------------ 5. ship only if the gate passed
+    # 5. ship only if the gate passed
     if not gate.passed:
         raise QualityGateError("Quality gate FAILED; no model artifact was written and nothing was registered.\n" + gate.summary())
 
