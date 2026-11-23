@@ -66,6 +66,15 @@ def test_root_redirects_to_the_ui(client):
     assert r.status_code in (302, 307) and r.headers["location"] == "/ui"
 
 
+def test_ui_logo_is_served_from_the_same_origin(client):
+    """The header logo must come from this server (no external request) and be a real PNG."""
+    page = client.get("/ui").text
+    assert 'src="/logo.png"' in page and 'alt="Strathmore University"' in page
+    r = client.get("/logo.png")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+    assert r.content[:8] == b"\x89PNG\r\n\x1a\n" and len(r.content) > 1000
+
+
 def test_ui_page_is_served_and_calls_the_api(client):
     r = client.get("/ui")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")

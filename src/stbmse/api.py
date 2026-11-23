@@ -63,6 +63,12 @@ def ui():
     return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
 
 
+@app.get("/logo.png", include_in_schema=False)
+def logo():
+    """The university logo shown in the UI header (served from the package, so the page stays self-contained)."""
+    return FileResponse(STATIC_DIR / "strathmore_logo.png", media_type="image/png")
+
+
 @app.get("/periods")
 def periods():
     """Months that can be scored, and the model's tuned alert threshold (used by the UI's controls)."""

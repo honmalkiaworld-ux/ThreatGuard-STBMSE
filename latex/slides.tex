@@ -20,7 +20,9 @@
 \setbeamercolor{normal text}{fg=black!90}
 \setbeamerfont{frametitle}{series=\bfseries,size=\large}
 \setbeamertemplate{frametitle}{%
-  \vspace{5pt}\color{navy}\insertframetitle\par\vspace{-3pt}\color{navy}\rule{\linewidth}{0.6pt}}
+  \vspace{3pt}\begin{minipage}[b]{0.82\linewidth}\color{navy}\insertframetitle\end{minipage}%
+  \hfill\raisebox{-1pt}{\includegraphics[height=0.72cm]{figures/strathmore_logo_wide.png}}\par
+  \vspace{-3pt}\color{navy}\rule{\linewidth}{0.6pt}}
 \setbeamertemplate{footline}{%
   \hfill\color{black!50}\footnotesize ST-BMSE \textbullet{} Esther Muthui (223932) \hspace{1em} \insertframenumber\hspace{0.6cm}\vspace{5pt}}
 \setbeamertemplate{itemize items}[circle]
@@ -41,6 +43,8 @@
 
 % ---------------------------------------------------------------- 1 title
 \begin{frame}[plain]
+  \vspace{4pt}
+  \includegraphics[height=2.5cm]{figures/strathmore_logo.png}\par
   \vfill
   {\color{navy}\fontsize{30}{34}\selectfont\bfseries ST-BMSE\par}
   \vspace{4pt}
@@ -320,7 +324,7 @@
     \textbf{MLflow} & Parameters, metrics, tables and model per run; the three learners as nested runs; passing model registered as \code{production} \\
     \textbf{Quality gate} & Validation only: best learner must beat persistence by $\ge 0.05$ PR-AUC. Fail $\to$ exit 1, no model saved, nothing registered \\
     \textbf{Proof} & Real data passes ($+0.179$). Demanding $+0.90$ stopped the pipeline with exit code 1 and left the registry untouched \\
-    \textbf{CI} & Each push: train + gate, audits, Evidently, 56 tests, Docker build, run the container and call it \\
+    \textbf{CI} & Each push: train + gate, audits, Evidently, 57 tests, Docker build, run the container and call it \\
     \textbf{CD} & Push to the container registry only from the default branch, and only if CI passed \\
     \bottomrule
   \end{tabular}
@@ -344,7 +348,7 @@
     \column{0.50\textwidth}
     \textbf{What I verified}
     \begin{itemize}\setlength{\itemsep}{2pt}\small
-      \item 56 pytest tests pass
+      \item 57 pytest tests pass
       \item Slim image builds (gate runs inside the build)
       \item Container \emph{healthy}, non-root; 200 and 422 over HTTP
     \end{itemize}
@@ -406,6 +410,8 @@
 \begin{frame}[plain]
   \vfill
   \centering
+  \includegraphics[height=2.4cm]{figures/strathmore_logo.png}\par
+  \vspace{10pt}
   {\color{navy}\fontsize{30}{34}\selectfont\bfseries Questions\par}
   \vspace{12pt}
   {\large Code, tests, Docker files and report are in the project repository.\par}

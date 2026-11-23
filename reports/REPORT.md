@@ -221,7 +221,7 @@ To use real data: obtain ACLED and KNBS, aggregate to county-month, define "esca
 FastAPI service (`/predict`, `/predict/batch`, `/health`, `/model-info`) loaded from a serialised artifact. Features are
 rebuilt at serving time with the same code as training, so training and serving cannot diverge. The API returns the
 probability, the base-model probabilities and context an analyst needs (recent escalation share, region peers, Markov
-probability). Tested with pytest (56 tests passing) and with live HTTP calls.
+probability). Tested with pytest (57 tests passing) and with live HTTP calls.
 
 **Frontend.** The API serves a single-page analyst view at `/ui` (`ui_screenshot.png` in `latex/figures/`): all 47 counties ranked by predicted probability, an as-of month selector, an alert-threshold slider, region and alerts-only filters, and a detail panel that shows what each of the three models says plus context an analyst can check. When the threshold makes nearly every county alert (as the tuned 0.18 does) the page says so and advises raising it. It is a real client of the JSON endpoints (`/periods`, `/predict/batch`), makes no external requests, inserts API values as text only, and these properties are covered by tests. It was checked in headless Edge at desktop and phone widths in light and dark mode, and served from the Docker container; it has not been tested in Firefox or Safari, or with a screen reader.
 

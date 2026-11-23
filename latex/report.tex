@@ -42,7 +42,8 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.3pt}
-\fancyhead[L]{\small DSA 8401 -- Applied Machine Learning}
+\setlength{\headheight}{26pt}
+\fancyhead[L]{\raisebox{-0.28\height}{\includegraphics[height=0.85cm]{figures/strathmore_logo_wide.png}}\hspace{0.9em}\small DSA 8401 -- Applied Machine Learning}
 \fancyhead[R]{\small ST-BMSE capstone report}
 \fancyfoot[C]{\small\thepage}
 
@@ -56,6 +57,8 @@
 
 % ------------------------------------------------------------------ title
 \begin{center}
+  \includegraphics[height=3.2cm]{figures/strathmore_logo.png}\par
+  \vspace{10pt}
   {\Huge\bfseries\color{navy} ST-BMSE\par}
   \vspace{4pt}
   {\LARGE\bfseries\color{navy} Forecasting County-Level Conflict\\ Escalation in Kenya\par}
@@ -440,7 +443,7 @@ the schema in \code{config.REQUIRED\_COLUMNS} or extend \code{data.py}.
 \section{Deployment and real-world relevance}
 A FastAPI service (\code{/predict}, \code{/predict/batch}, \code{/health}, \code{/model-info}) loads the serialised artifact. Features are rebuilt at
 serving time with the same code as training, so training and serving cannot diverge. The API returns the probability, the base-model probabilities and the context an
-analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (56 tests passing) and with live HTTP calls.
+analyst needs (recent escalation share, region peers, Markov probability). It was tested with pytest (57 tests passing) and with live HTTP calls.
 
 \textbf{Frontend.} The API serves a single-page analyst view at \code{/ui} (Figure~\ref{fig:ui}): all 47 counties ranked by predicted probability, an as-of month selector, an alert-threshold slider,
 region and alerts-only filters, and a detail panel showing what each of the three models says plus context an analyst can check. When the threshold makes nearly every county alert (as the tuned 0.18 does)
