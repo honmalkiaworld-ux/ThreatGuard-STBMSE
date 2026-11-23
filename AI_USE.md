@@ -1,5 +1,7 @@
 # Artificial intelligence Use Disclosure
 
+Student: Esther Muthui (223932). Lecturers: Prof. Javier Serrano and Emmanuel Bundi.
+
 This file discloses artificial intelligence assistance in this repository, as the DSA 8401 capstone checklist requires.
 **Check it against the course's artificial intelligence-use policy template and edit it before you submit.** The course policy text was not
 available when this was drafted, so the structure below is a reasonable default, not the official format.

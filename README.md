@@ -3,8 +3,10 @@
 # ThreatGuard ST-BMSE: county-level conflict escalation forecasting (DSA 8401 capstone)
 
 A reproducible ML pipeline and model service that forecasts **whether a Kenyan county will escalate next month**,
-built from the proposal *"Spatio-Temporal Bayesian-Markov Stacked Ensemble (Spatio-Temporal Bayesian-Markov Stacked Ensemble) for County-Level Conflict
+built from the proposal *"Spatio-Temporal Bayesian-Markov Stacked Ensemble for County-Level Conflict
 Escalation Forecasting in Kenya"* (Esther Muthui, 223932).
+
+**Lecturers:** Prof. Javier Serrano and Emmanuel Bundi
 
 > **Read this first: the data are synthetic.** `data/raw/kenya_conflict_monthly.csv` holds simulated county-month
 > records built to the proposal's design (47 counties x 120 months, 2015-2024, 2022-2024 held out as the test period).
