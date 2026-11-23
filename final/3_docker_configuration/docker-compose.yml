@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    image: threatguard-stbmse:1.0.0
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    environment:
+      # Point the service at a different county-month CSV (same schema) without rebuilding the image.
+      STBMSE_DATA: /app/data/raw/kenya_conflict_monthly.csv
+    volumes:
+      - ./data/raw:/app/data/raw:ro

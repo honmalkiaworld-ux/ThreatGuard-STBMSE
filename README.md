@@ -251,6 +251,7 @@ src/stbmse/
 latex/                     report.tex, slides.tex (Beamer), make_figures.py -> the report and slides PDFs in reports/
 tests/                     57 tests (leakage, splits, validation, gate, MLflow, Evidently, rolling windows, tuning, SHAP, slim install, API, UI)
 artifacts/                 model.joblib (11.8 MB), metrics.json: the serialized model, committed on purpose
+final/                     convenience copy of the deliverables, grouped in five numbered folders (every file also lives at its normal path above)
 reports/                   REPORT.md + generated CSV/JSON/HTML results
 data/raw/                  input CSV
 Dockerfile, docker-compose.yml, AI_USE.md

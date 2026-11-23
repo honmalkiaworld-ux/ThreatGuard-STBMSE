@@ -1,0 +1,15 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+reports/
+artifacts/
+data/processed/
+*.md
+mlflow.db
+mlruns/
+latex/
+.github/
+requirements.txt

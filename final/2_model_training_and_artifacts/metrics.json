@@ -1,0 +1,244 @@
+{
+  "version": "1.0.0",
+  "trained_at": "2026-11-18T21:14:32+00:00",
+  "n_rows": {
+    "train": 2679,
+    "validation": 1128,
+    "test": 1692
+  },
+  "n_features": 43,
+  "escalation_rate": {
+    "train": 0.2026875699888018,
+    "validation": 0.23670212765957446,
+    "test": 0.42907801418439717
+  },
+  "threshold": 0.18,
+  "cost_ratio_fn_to_fp": 5.0,
+  "meta_weights_logit": {
+    "logistic_regression": 0.4816472044638957,
+    "random_forest": 0.31897252732813025,
+    "xgboost": 0.1887133292157064
+  },
+  "quality_gate": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "validation has both classes",
+        "ok": true,
+        "detail": "267 positives of 1128"
+      },
+      {
+        "name": "scores are finite",
+        "ok": true,
+        "detail": "no NaN or infinity"
+      },
+      {
+        "name": "best learner beats persistence by >= 0.05 PR-AUC (validation)",
+        "ok": true,
+        "detail": "logistic_regression 0.462 vs persistence 0.284 (gain +0.179)"
+      },
+      {
+        "name": "alert threshold is not degenerate",
+        "ok": true,
+        "detail": "threshold 0.18 (grid edge = 0.02 or 0.98 means 'alert on all/none')"
+      }
+    ]
+  },
+  "validation_results_base_learners": {
+    "persistence": {
+      "pr_auc": 0.2837,
+      "roc_auc": 0.5841,
+      "recall": 0.3633,
+      "false_alarm_rate": 0.1951,
+      "precision": 0.366,
+      "brier": 0.2996,
+      "threshold": 0.5,
+      "expected_cost_per_row": 0.9025,
+      "tp": 97,
+      "fp": 168,
+      "tn": 693,
+      "fn": 170
+    },
+    "logistic_regression": {
+      "pr_auc": 0.4624,
+      "roc_auc": 0.7067,
+      "recall": 0.779,
+      "false_alarm_rate": 0.4948,
+      "precision": 0.3281,
+      "brier": 0.1618,
+      "threshold": 0.16,
+      "expected_cost_per_row": 0.6392,
+      "tp": 208,
+      "fp": 426,
+      "tn": 435,
+      "fn": 59
+    },
+    "random_forest": {
+      "pr_auc": 0.4418,
+      "roc_auc": 0.7014,
+      "recall": 0.7266,
+      "false_alarm_rate": 0.4472,
+      "precision": 0.3351,
+      "brier": 0.1618,
+      "threshold": 0.2,
+      "expected_cost_per_row": 0.6649,
+      "tp": 194,
+      "fp": 385,
+      "tn": 476,
+      "fn": 73
+    },
+    "xgboost": {
+      "pr_auc": 0.4277,
+      "roc_auc": 0.7016,
+      "recall": 0.8165,
+      "false_alarm_rate": 0.5285,
+      "precision": 0.3239,
+      "brier": 0.1641,
+      "threshold": 0.16,
+      "expected_cost_per_row": 0.6206,
+      "tp": 218,
+      "fp": 455,
+      "tn": 406,
+      "fn": 49
+    }
+  },
+  "test_results": {
+    "persistence": {
+      "pr_auc": 0.4981,
+      "roc_auc": 0.6092,
+      "recall": 0.5537,
+      "false_alarm_rate": 0.3354,
+      "precision": 0.5537,
+      "brier": 0.383,
+      "threshold": 0.5,
+      "expected_cost_per_row": 1.1489,
+      "tp": 402,
+      "fp": 324,
+      "tn": 642,
+      "fn": 324,
+      "pr_auc_ci_low": 0.4332,
+      "pr_auc_ci_high": 0.5589,
+      "roc_auc_ci_low": 0.5707,
+      "roc_auc_ci_high": 0.6437
+    },
+    "logistic_regression": {
+      "pr_auc": 0.5944,
+      "roc_auc": 0.6722,
+      "recall": 0.9738,
+      "false_alarm_rate": 0.8934,
+      "precision": 0.4503,
+      "brier": 0.2274,
+      "threshold": 0.16,
+      "expected_cost_per_row": 0.5662,
+      "tp": 707,
+      "fp": 863,
+      "tn": 103,
+      "fn": 19,
+      "pr_auc_ci_low": 0.5071,
+      "pr_auc_ci_high": 0.679,
+      "roc_auc_ci_low": 0.623,
+      "roc_auc_ci_high": 0.7147
+    },
+    "random_forest": {
+      "pr_auc": 0.6189,
+      "roc_auc": 0.6995,
+      "recall": 0.9256,
+      "false_alarm_rate": 0.7547,
+      "precision": 0.4797,
+      "brier": 0.2213,
+      "threshold": 0.2,
+      "expected_cost_per_row": 0.5904,
+      "tp": 672,
+      "fp": 729,
+      "tn": 237,
+      "fn": 54,
+      "pr_auc_ci_low": 0.5329,
+      "pr_auc_ci_high": 0.6921,
+      "roc_auc_ci_low": 0.6442,
+      "roc_auc_ci_high": 0.7432
+    },
+    "xgboost": {
+      "pr_auc": 0.5873,
+      "roc_auc": 0.6781,
+      "recall": 0.8884,
+      "false_alarm_rate": 0.7226,
+      "precision": 0.4803,
+      "brier": 0.2305,
+      "threshold": 0.16,
+      "expected_cost_per_row": 0.6519,
+      "tp": 645,
+      "fp": 698,
+      "tn": 268,
+      "fn": 81,
+      "pr_auc_ci_low": 0.5119,
+      "pr_auc_ci_high": 0.6597,
+      "roc_auc_ci_low": 0.6227,
+      "roc_auc_ci_high": 0.7188
+    },
+    "st_bmse_ensemble": {
+      "pr_auc": 0.6077,
+      "roc_auc": 0.6909,
+      "recall": 0.9408,
+      "false_alarm_rate": 0.8054,
+      "precision": 0.4675,
+      "brier": 0.2212,
+      "threshold": 0.18,
+      "expected_cost_per_row": 0.5869,
+      "tp": 683,
+      "fp": 778,
+      "tn": 188,
+      "fn": 43,
+      "pr_auc_ci_low": 0.5197,
+      "pr_auc_ci_high": 0.6894,
+      "roc_auc_ci_low": 0.6386,
+      "roc_auc_ci_high": 0.7343
+    }
+  },
+  "paired_pr_auc_differences": {
+    "ensemble_minus_persistence_pr_auc": {
+      "mean": 0.10898148219560244,
+      "ci95": [
+        0.06153140946520369,
+        0.16065426412160877
+      ]
+    },
+    "ensemble_minus_random_forest_pr_auc": {
+      "mean": -0.011224974682465288,
+      "ci95": [
+        -0.031248038551413025,
+        0.01617274911160634
+      ]
+    },
+    "ensemble_minus_logistic_pr_auc": {
+      "mean": 0.013256967721479619,
+      "ci95": [
+        0.0016640902620581157,
+        0.0262612722349123
+      ]
+    }
+  },
+  "ece_test": 0.04873248740921366,
+  "top_features_validation": [
+    "Social_Unrest_Score_roll3",
+    "y_roll6",
+    "cum_hist",
+    "eb_p_enter",
+    "Region_North Eastern",
+    "eb_p_stay",
+    "y_roll12",
+    "y_lag2",
+    "Security_Force_Response_Time_roll3",
+    "Region_Northern"
+  ],
+  "data_quality": {
+    "rows": 5640,
+    "counties": 47,
+    "period": "2015-01 to 2024-12",
+    "panel_cells_present": 5640,
+    "warnings": []
+  },
+  "tracking": {
+    "enabled": false,
+    "reason": "disabled by STBMSE_TRACKING"
+  }
+}

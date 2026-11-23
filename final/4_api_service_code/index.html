@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ThreatGuard ST-BMSE: county-level conflict escalation forecasting</title>
+<style>
+  :root {
+    --bg: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #6f6d67;
+    --line: #e1e0d9; --axis: #c3c2b7;
+    --blue: #2a78d6; --orange: #eb6834; --orange-ink: #b4410f; --orange-wash: #fdf0ea; --blue-wash: #eaf2fc;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #a09e96;
+      --line: #2c2c2a; --axis: #383835;
+      --blue: #3987e5; --orange: #d95926; --orange-ink: #f08a5d; --orange-wash: #2a1a13; --blue-wash: #14202e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {                       /* same values as the media query; lets #theme=dark force it */
+    --bg: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #a09e96;
+    --line: #2c2c2a; --axis: #383835;
+    --blue: #3987e5; --orange: #d95926; --orange-ink: #f08a5d; --orange-wash: #2a1a13; --blue-wash: #14202e;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-size: 22px; margin: 0 0 2px; letter-spacing: -0.01em; }
+  .sub { color: var(--ink2); margin: 0; }
+  .brand { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; }
+  .brand img { height: 40px; width: auto; background: #fff; padding: 4px 8px; border-radius: 8px;   /* white plate keeps the logo legible in dark mode */
+               border: 1px solid var(--line); flex: none; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end; margin-bottom: 12px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field > label, .field > .lab { font-size: 12px; color: var(--ink2); font-weight: 600; }
+  select, button.btn { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--axis);
+                       border-radius: 8px; padding: 6px 10px; min-height: 34px; }
+  select:focus-visible, button:focus-visible, input:focus-visible, tr[tabindex]:focus-visible {
+    outline: 2px solid var(--blue); outline-offset: 2px; }
+  .asof { display: flex; gap: 6px; }
+  input[type=range] { width: 200px; accent-color: var(--blue); }
+  .thr { display: flex; align-items: center; gap: 10px; }
+  .thr output { min-width: 3ch; font-variant-numeric: tabular-nums; font-weight: 600; }
+  button.btn { cursor: pointer; }
+  button.btn:hover { border-color: var(--blue); }
+  .summary { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--blue-wash); border: 1px solid var(--line); }
+  .summary.warn { background: var(--orange-wash); }
+  .summary strong { font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; }
+  caption { text-align: left; font-size: 12px; color: var(--ink2); padding: 0 0 8px; }
+  th { text-align: left; font-size: 12px; color: var(--ink2); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--axis); }
+  td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--blue-wash); }
+  tbody tr[aria-selected="true"] { background: var(--blue-wash); box-shadow: inset 3px 0 0 var(--blue); }
+  .rk { color: var(--muted); width: 2.2em; font-variant-numeric: tabular-nums; }
+  .cn { font-weight: 600; } .rg { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+  .bar { position: relative; height: 12px; background: var(--line); border-radius: 6px; min-width: 90px; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue); border-radius: 6px; }
+  .bar b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55; }
+  .pv { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink2); margin-top: 3px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .chip.on { background: var(--orange); color: #fff; }
+  .chip.off { border: 1px solid var(--axis); color: var(--ink2); }
+  .detail h2 { font-size: 18px; margin: 0 0 2px; } .detail .meta { color: var(--ink2); margin: 0 0 12px; }
+  .big { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .detail h3 { font-size: 13px; margin: 16px 0 6px; color: var(--ink2); text-transform: uppercase; letter-spacing: .04em; }
+  .mrow { display: grid; grid-template-columns: 8.5em 1fr 3.2em; gap: 8px; align-items: center; margin: 5px 0; font-size: 13px; }
+  .mrow .bar { height: 8px; } .mrow span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  dl { margin: 0; } dl div { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  dt { color: var(--ink2); } dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .note { color: var(--ink2); font-size: 13px; margin-top: 16px; }
+  .err { padding: 12px 14px; border: 1px solid var(--orange); background: var(--orange-wash); border-radius: 10px; margin-bottom: 12px; }
+  .hide { display: none; }
+  a { color: var(--blue); }
+  .tablewrap { overflow-x: auto; }
+  @media (max-width: 560px) {                      /* phones: drop the rank column and tighten spacing */
+    .wrap { padding: 14px 10px 32px; } .card { padding: 10px 10px; }
+    th.rk, td.rk { display: none; }
+    td { padding: 7px 4px; } th { padding: 6px 4px; }
+    .bar { min-width: 56px; } .chip { padding: 2px 7px; font-size: 11px; }
+    input[type=range] { width: 150px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <img src="/logo.png" alt="Strathmore University" height="40">
+    <div><h1>County escalation outlook</h1>
+      <p class="sub" id="sub">Loading…</p></div>
+  </div>
+
+  <div id="error" class="err hide" role="alert"></div>
+
+  <div class="card controls">
+    <div class="field"><span class="lab" id="asof-lab">As-of month</span>
+      <div class="asof" role="group" aria-labelledby="asof-lab">
+        <select id="year" aria-label="Year"></select>
+        <select id="month" aria-label="Month"></select>
+      </div></div>
+    <div class="field"><label for="thr">Alert threshold</label>
+      <div class="thr"><input id="thr" type="range" min="0.05" max="0.95" step="0.01" value="0.5">
+        <output id="thrv" for="thr">0.50</output>
+        <button class="btn" id="reset" type="button">Reset to tuned</button></div></div>
+    <div class="field"><label for="show">Show</label>
+      <select id="show"><option value="all">All counties</option><option value="alerts">Alerts only</option>
+        <option value="top10">Top 10</option></select></div>
+    <div class="field"><label for="region">Region</label>
+      <select id="region"><option value="all">All regions</option></select></div>
+  </div>
+
+  <p class="summary" id="summary" aria-live="polite"></p>
+
+  <div class="grid">
+    <div class="card tablewrap">
+      <table id="tbl">
+        <caption>Counties ranked by predicted probability of escalating next month. The vertical tick on each bar marks the alert threshold. Select a row for detail.</caption>
+        <thead><tr><th class="rk" scope="col">#</th><th scope="col">County</th><th scope="col">Probability</th><th scope="col">Status</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <aside class="card detail" id="detail" aria-live="polite"></aside>
+  </div>
+
+  <p class="note">Decision support for a human reviewer, not an automated decision. The data are synthetic (simulated),
+    so this demonstrates the method and is not evidence about real conflict in Kenya.
+    Application programming interface reference: <a href="/docs">/docs</a> · <a href="/model-info">/model-info</a></p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var MODELS = { logistic_regression: "Logistic regression", random_forest: "Random forest", xgboost: "XGBoost" };
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var S = { first: null, last: null, tuned: 0.5, thr: 0.5, rows: [], sel: null, y: null, m: null };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function pct(x, d) { return (x * 100).toFixed(d == null ? 0 : d) + "%"; }
+  function ym(s) { var p = s.split("-"); return { y: +p[0], m: +p[1] }; }
+  function monthName(ym_) { var p = ym(ym_); return MONTHS[p.m - 1] + " " + p.y; }
+
+  function showError(msg) { var e = $("error"); if (msg) { e.textContent = msg; e.classList.remove("hide"); } else { e.classList.add("hide"); } }
+
+  function getJSON(path, body) {
+    var opts = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
+    return fetch(path, opts).then(function (r) {
+      if (r.ok) return r.json();
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        throw new Error(typeof j.detail === "string" ? j.detail : r.status + " " + r.statusText);
+      });
+    });
+  }
+
+  function fillMonths() {
+    var f = ym(S.first), l = ym(S.last), y = +$("year").value, sel = $("month"), keep = S.m;
+    var lo = y === f.y ? f.m : 1, hi = y === l.y ? l.m : 12;
+    sel.textContent = "";
+    for (var m = lo; m <= hi; m++) { var o = el("option", null, MONTHS[m - 1]); o.value = m; sel.appendChild(o); }
+    sel.value = Math.min(Math.max(keep, lo), hi);
+    S.m = +sel.value;
+  }
+
+  function writeHash() {
+    var p = new URLSearchParams();
+    if (S.sel) p.set("county", S.sel);
+    p.set("y", S.y); p.set("m", S.m);
+    if (Math.abs(S.thr - S.tuned) > 1e-9) p.set("t", S.thr.toFixed(2));        // only when changed from the tuned default
+    history.replaceState(null, "", "#" + p.toString());
+  }
+
+  function visibleRows() {
+    var show = $("show").value, reg = $("region").value;
+    var rows = S.rows.filter(function (r) { return reg === "all" || r.region === reg; });
+    if (show === "alerts") rows = rows.filter(function (r) { return r.escalation_probability >= S.thr; });
+    if (show === "top10") rows = rows.slice(0, 10);
+    return rows;
+  }
+
+  function renderSummary() {
+    var n = S.rows.length, a = S.rows.filter(function (r) { return r.escalation_probability >= S.thr; }).length;
+    var box = $("summary"); box.textContent = "";
+    box.appendChild(el("strong", null, a + " of " + n));
+    box.appendChild(document.createTextNode(" counties alert at threshold " + S.thr.toFixed(2) + "."));
+    var warn = n > 0 && a / n >= 0.8;
+    if (warn) box.appendChild(document.createTextNode(" At this setting nearly every county alerts, so the alert cannot prioritise. Raise the threshold to rank them."));
+    else if (a === 0) box.appendChild(document.createTextNode(" Nothing alerts at this setting. Lower the threshold."));
+    box.className = "summary" + (warn ? " warn" : "");
+  }
+
+  function renderTable() {
+    var tb = $("rows"); tb.textContent = "";
+    var rows = visibleRows();
+    if (!rows.length) { var tr0 = el("tr"); var td0 = el("td", null, "No counties match these filters."); td0.colSpan = 4; tr0.appendChild(td0); tb.appendChild(tr0); return; }
+    rows.forEach(function (r) {
+      var rank = S.rows.indexOf(r) + 1, on = r.escalation_probability >= S.thr;
+      var tr = el("tr"); tr.tabIndex = 0; tr.setAttribute("role", "button");
+      tr.setAttribute("aria-selected", r.county === S.sel ? "true" : "false");
+      tr.setAttribute("aria-label", r.county + ", probability " + pct(r.escalation_probability) + (on ? ", alert" : ", no alert"));
+      tr.appendChild(el("td", "rk", String(rank)));
+      var tdc = el("td", "cn", r.county); tdc.appendChild(el("span", "rg", r.region)); tr.appendChild(tdc);
+      var tdp = el("td"); var bar = el("div", "bar"); var fill = el("i"); fill.style.width = pct(r.escalation_probability, 1);
+      var tick = el("b"); tick.style.left = pct(S.thr, 1); bar.appendChild(fill); bar.appendChild(tick); tdp.appendChild(bar);
+      tdp.appendChild(el("div", "pv", pct(r.escalation_probability, 1))); tr.appendChild(tdp);
+      var tds = el("td"); tds.appendChild(el("span", "chip " + (on ? "on" : "off"), on ? "▲ Alert" : "○ No alert")); tr.appendChild(tds);
+      function pick() { S.sel = r.county; writeHash(); renderTable(); renderDetail(); }
+      tr.addEventListener("click", pick);
+      tr.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderDetail() {
+    var box = $("detail"); box.textContent = "";
+    var r = S.rows.filter(function (x) { return x.county === S.sel; })[0];
+    if (!r) { box.appendChild(el("p", null, "Select a county to see why it is ranked where it is.")); return; }
+    var on = r.escalation_probability >= S.thr, c = r.context;
+    box.appendChild(el("h2", null, r.county));
+    box.appendChild(el("p", "meta", r.region + " region · forecast for " + monthName(r.forecast_for)));
+    box.appendChild(el("div", "big", pct(r.escalation_probability, 1)));
+    var chip = el("span", "chip " + (on ? "on" : "off"), on ? "▲ Alert at " + S.thr.toFixed(2) : "○ Below " + S.thr.toFixed(2)); box.appendChild(chip);
+
+    box.appendChild(el("h3", null, "What each model says"));
+    Object.keys(MODELS).forEach(function (k) {
+      var v = r.base_model_probabilities[k]; if (v == null) return;
+      var row = el("div", "mrow"); row.appendChild(el("span", null, MODELS[k]));
+      var bar = el("div", "bar"); var f = el("i"); f.style.width = pct(v, 1); bar.appendChild(f); row.appendChild(bar);
+      row.appendChild(el("span", null, pct(v))); box.appendChild(row);
+    });
+
+    box.appendChild(el("h3", null, "Context for the analyst"));
+    var dl = el("dl");
+    function add(k, v) { var d = el("div"); d.appendChild(el("dt", null, k)); d.appendChild(el("dd", null, v)); dl.appendChild(d); }
+    add("Escalating this month", c.escalating_this_month ? "Yes" : "No");
+    add("Escalating, last 3 months", pct(c.escalation_share_last_3_months));
+    add("Escalating, last 12 months", pct(c.escalation_share_last_12_months));
+    add("Region peers escalating now", c.region_peers_escalating_this_month == null ? "n/a" : pct(c.region_peers_escalating_this_month));
+    add("Markov chance of escalating next", pct(c.markov_p_escalate_next));
+    box.appendChild(dl);
+  }
+
+  function load() {
+    showError(null);
+    return getJSON("/predict/batch", { year: S.y, month: S.m }).then(function (j) {
+      S.rows = j.results;
+      var f = S.rows[0] ? S.rows[0].forecast_for : null;
+      $("sub").textContent = "Forecast for " + (f ? monthName(f) : "next month") + ", from data through " + monthName(j.as_of) + ".";
+      var regs = {}; S.rows.forEach(function (r) { regs[r.region] = 1; });
+      var rs = $("region"), cur = rs.value; rs.textContent = "";
+      var all = el("option", null, "All regions"); all.value = "all"; rs.appendChild(all);
+      Object.keys(regs).sort().forEach(function (g) { var o = el("option", null, g); o.value = g; rs.appendChild(o); });
+      rs.value = regs[cur] ? cur : "all";
+      if (!S.sel || !S.rows.some(function (r) { return r.county === S.sel; })) S.sel = S.rows[0] ? S.rows[0].county : null;
+      writeHash(); renderSummary(); renderTable(); renderDetail();
+    }).catch(function (e) { showError("Could not load predictions: " + e.message); });
+  }
+
+  function setThreshold(v) {
+    S.thr = v; $("thr").value = v; $("thrv").textContent = v.toFixed(2);
+    if (S.rows.length) { writeHash(); renderSummary(); renderTable(); renderDetail(); }
+  }
+
+  function init() {
+    var h = new URLSearchParams(location.hash.slice(1));
+    if (h.get("theme") === "dark" || h.get("theme") === "light") document.documentElement.setAttribute("data-theme", h.get("theme"));
+    getJSON("/periods").then(function (p) {
+      S.first = p.first; S.last = p.last; S.tuned = p.default_threshold;
+      var f = ym(p.first), l = ym(p.last), ys = $("year");
+      for (var y = f.y; y <= l.y; y++) { var o = el("option", null, String(y)); o.value = y; ys.appendChild(o); }
+      var wantY = +h.get("y"), wantM = +h.get("m");
+      S.y = (wantY >= f.y && wantY <= l.y) ? wantY : l.y; ys.value = S.y;
+      S.m = wantM || l.m; fillMonths();
+      S.sel = h.get("county");
+      var wantT = parseFloat(h.get("t"));
+      setThreshold(isFinite(wantT) && wantT >= 0.05 && wantT <= 0.95 ? wantT : S.tuned);
+      return load();
+    }).catch(function (e) { showError("Could not reach the API: " + e.message); $("sub").textContent = ""; });
+
+    $("year").addEventListener("change", function () { S.y = +$("year").value; fillMonths(); load(); });
+    $("month").addEventListener("change", function () { S.m = +$("month").value; load(); });
+    $("thr").addEventListener("input", function () { setThreshold(parseFloat($("thr").value)); });
+    $("reset").addEventListener("click", function () { setThreshold(S.tuned); });
+    $("show").addEventListener("change", renderTable);
+    $("region").addEventListener("change", renderTable);
+  }
+  init();
+})();
+</script>
+</body>
+</html>
