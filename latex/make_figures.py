@@ -121,7 +121,7 @@ def build(K: float, tag: str, sizes: dict):
     fig, ax = plt.subplots(figsize=sizes["drift"])
     cols = [ORANGE if y >= 2022 else BLUE for y in yr.index]
     ax.bar(yr.index.astype(str), yr.values * 100, color=cols, width=0.7, zorder=2)
-    for y in (2016, 2021, 2022, 2023):
+    for y in yr.index:                                    # label every bar
         ax.text(str(y), yr[y] * 100 + 1.2, f"{yr[y] * 100:.0f}%", ha="center", fontsize=9 * K, color=INK)
     ax.set_ylabel("Escalating counties (%)")
     ax.set_ylim(0, 58)
